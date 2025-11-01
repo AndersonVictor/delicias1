@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Comprobante tipo="boleta" serie="B001" numero="848775">
+  <Documento tipo="DNI">71556753</Documento>
+  <Totales>
+    <OpGravada>34.75</OpGravada>
+    <IGV>6.25</IGV>
+    <Total>41.00</Total>
+  </Totales>
+</Comprobante>

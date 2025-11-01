@@ -1,0 +1,18 @@
+{
+  "name": "delicias-bakery",
+  "version": "1.0.0",
+  "description": "Página web profesional para venta de panes, pasteles y productos de repostería",
+  "scripts": {
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && npm run start:dev",
+    "frontend": "cd frontend && npm run dev -- -p 3005",
+    "build": "cd frontend && npm run build",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": ["bakery", "pasteles", "panes", "repostería", "ecommerce"],
+  "author": "Delicias Bakery",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}

@@ -1,0 +1,164 @@
+[
+  {
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "256748",
+    "total": 48,
+    "pedido_id": 7,
+    "created_at": "2025-10-17T04:32:43.561Z",
+    "archivos": {
+      "pdf": "/comprobantes/pedido-7-B001-256748.pdf",
+      "xml": "/comprobantes/pedido-7-B001-256748.xml"
+    }
+  },
+  {
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "775516",
+    "total": 48,
+    "pedido_id": 8,
+    "created_at": "2025-10-17T04:33:29.394Z",
+    "archivos": {
+      "pdf": "/comprobantes/pedido-8-B001-775516.pdf",
+      "xml": "/comprobantes/pedido-8-B001-775516.xml"
+    }
+  },
+  {
+    "id": "10b930a8-12da-4bed-ad4d-0936f69e280f",
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "106712",
+    "estado": "emitido",
+    "pedido_id": 9,
+    "total": 48,
+    "totales": {
+      "op_gravada": 40.68,
+      "igv": 7.32,
+      "total": 48
+    },
+    "cliente": {
+      "tipo_documento": "DNI",
+      "numero_documento": "71556753",
+      "nombres": null,
+      "primer_apellido": null,
+      "segundo_apellido": null,
+      "verificado": false
+    },
+    "created_at": "2025-10-17T05:03:49.179Z",
+    "archivos": {
+      "pdf": "/uploads/comprobantes/pedido-9-B001-106712.pdf",
+      "xml": "/uploads/comprobantes/pedido-9-B001-106712.xml"
+    }
+  },
+  {
+    "id": "35e3d880-157f-4ee2-8121-28ecdbd02f37",
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "912674",
+    "estado": "emitido",
+    "pedido_id": 10,
+    "total": 36,
+    "totales": {
+      "op_gravada": 30.51,
+      "igv": 5.49,
+      "total": 36
+    },
+    "cliente": {
+      "tipo_documento": "DNI",
+      "numero_documento": "71556753",
+      "nombres": null,
+      "primer_apellido": null,
+      "segundo_apellido": null,
+      "verificado": false
+    },
+    "created_at": "2025-10-17T05:12:24.726Z",
+    "archivos": {
+      "pdf": "/uploads/comprobantes/pedido-10-B001-912674.pdf",
+      "xml": "/uploads/comprobantes/pedido-10-B001-912674.xml"
+    }
+  },
+  {
+    "id": "14e1114c-4789-4caa-9472-3be10f159c20",
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "743261",
+    "estado": "emitido",
+    "pedido_id": 11,
+    "total": 36,
+    "totales": {
+      "op_gravada": 30.51,
+      "igv": 5.49,
+      "total": 36
+    },
+    "cliente": {
+      "tipo_documento": "DNI",
+      "numero_documento": "71556753",
+      "nombres": "LUIS FERNANDO",
+      "primer_apellido": "CUNYAS",
+      "segundo_apellido": "PACHECO",
+      "verificado": true
+    },
+    "created_at": "2025-10-17T05:22:49.256Z",
+    "archivos": {
+      "pdf": "/uploads/comprobantes/pedido-11-B001-743261.pdf",
+      "xml": "/uploads/comprobantes/pedido-11-B001-743261.xml",
+      "img": "/uploads/comprobantes/pedido-11-B001-743261.png"
+    }
+  },
+  {
+    "id": "ee20a451-448a-4aa5-9074-b3104021ad07",
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "848775",
+    "estado": "emitido",
+    "pedido_id": 12,
+    "total": 41,
+    "totales": {
+      "op_gravada": 34.75,
+      "igv": 6.25,
+      "total": 41
+    },
+    "cliente": {
+      "tipo_documento": "DNI",
+      "numero_documento": "71556753",
+      "nombres": "LUIS FERNANDO",
+      "primer_apellido": "CUNYAS",
+      "segundo_apellido": "PACHECO",
+      "verificado": true
+    },
+    "created_at": "2025-10-17T06:04:11.605Z",
+    "archivos": {
+      "pdf": "/uploads/comprobantes/pedido-12-B001-848775.pdf",
+      "xml": "/uploads/comprobantes/pedido-12-B001-848775.xml",
+      "img": "/uploads/comprobantes/pedido-12-B001-848775.png"
+    }
+  },
+  {
+    "id": "8c313e80-608b-459f-947a-ebbfcacf5b58",
+    "tipo": "boleta",
+    "serie": "B001",
+    "numero": "995733",
+    "estado": "emitido",
+    "pedido_id": 13,
+    "total": 24,
+    "totales": {
+      "op_gravada": 20.34,
+      "igv": 3.66,
+      "total": 24
+    },
+    "cliente": {
+      "tipo_documento": "DNI",
+      "numero_documento": "71556753",
+      "nombres": "LUIS FERNANDO",
+      "primer_apellido": "CUNYAS",
+      "segundo_apellido": "PACHECO",
+      "verificado": true
+    },
+    "created_at": "2025-10-17T06:28:54.487Z",
+    "archivos": {
+      "pdf": "/uploads/comprobantes/pedido-13-B001-995733.pdf",
+      "xml": "/uploads/comprobantes/pedido-13-B001-995733.xml",
+      "img": "/uploads/comprobantes/pedido-13-B001-995733.png"
+    }
+  }
+]

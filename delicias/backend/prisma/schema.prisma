@@ -1,0 +1,151 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums basados en el esquema actual
+enum AdminRol {
+  admin
+  super_admin
+
+  @@map("rol")
+}
+
+enum PedidoEstado {
+  pendiente
+  confirmado
+  en_preparacion
+  listo
+  entregado
+  cancelado
+}
+
+enum TipoUsuarioLoginLog {
+  usuario
+  admin
+}
+
+model Categoria {
+  id          Int        @id @default(autoincrement())
+  nombre      String     @unique
+  descripcion String?
+  imagen      String?
+  activo      Boolean    @default(true)
+  created_at  DateTime   @default(now()) @map("created_at")
+  updated_at  DateTime   @updatedAt @map("updated_at")
+
+  productos   Producto[]
+
+  @@map("categorias")
+}
+
+model Producto {
+  id            Int           @id @default(autoincrement())
+  nombre        String
+  descripcion   String?
+  precio        Decimal        @db.Decimal(10, 2)
+  categoria_id  Int?          @map("categoria_id")
+  imagen        String?
+  stock         Int           @default(0)
+  destacado     Boolean       @default(false)
+  activo        Boolean       @default(true)
+  created_at    DateTime      @default(now()) @map("created_at")
+  updated_at    DateTime      @updatedAt @map("updated_at")
+
+  categoria     Categoria?    @relation(fields: [categoria_id], references: [id], onDelete: SetNull)
+  detalles      PedidoDetalle[]
+
+  @@map("productos")
+}
+
+model Usuario {
+  id          Int        @id @default(autoincrement())
+  nombre      String
+  apellido    String
+  email       String     @unique
+  password    String
+  telefono    String?    @db.VarChar(20)
+  direccion   String?    @db.Text
+  activo      Boolean    @default(true)
+  created_at  DateTime   @default(now()) @map("created_at")
+  updated_at  DateTime   @updatedAt @map("updated_at")
+
+  pedidos     Pedido[]
+  loginLogs   LoginLog[]
+
+  @@map("usuarios")
+}
+
+model Administrador {
+  id          Int        @id @default(autoincrement())
+  nombre      String
+  email       String     @unique
+  password    String
+  rol         AdminRol   @default(admin)
+  activo      Boolean    @default(true)
+  created_at  DateTime   @default(now()) @map("created_at")
+  updated_at  DateTime   @updatedAt @map("updated_at")
+
+  loginLogs   LoginLog[]
+
+  @@map("administradores")
+}
+
+model Pedido {
+  id                Int           @id @default(autoincrement())
+  usuario_id        Int?          @map("usuario_id")
+  total             Decimal       @db.Decimal(10, 2)
+  estado            PedidoEstado  @default(pendiente)
+  fecha_entrega     DateTime?     @db.Date @map("fecha_entrega")
+  direccion_entrega String?       @db.Text @map("direccion_entrega")
+  telefono_contacto String?       @db.VarChar(20) @map("telefono_contacto")
+  notas             String?       @db.Text
+  created_at        DateTime      @default(now()) @map("created_at")
+  updated_at        DateTime      @updatedAt @map("updated_at")
+
+  usuario           Usuario?      @relation(fields: [usuario_id], references: [id], onDelete: SetNull)
+  detalles          PedidoDetalle[]
+
+  @@map("pedidos")
+}
+
+model PedidoDetalle {
+  id             Int       @id @default(autoincrement())
+  pedido_id      Int       @map("pedido_id")
+  producto_id    Int?      @map("producto_id")
+  cantidad       Int
+  precio_unitario Decimal   @db.Decimal(10, 2) @map("precio_unitario")
+  subtotal       Decimal    @db.Decimal(10, 2)
+
+  pedido         Pedido    @relation(fields: [pedido_id], references: [id], onDelete: Cascade)
+  producto       Producto? @relation(fields: [producto_id], references: [id], onDelete: SetNull)
+
+  @@map("pedido_detalles")
+}
+
+model LoginLog {
+  id            Int                 @id @default(autoincrement())
+  usuario_id    Int?
+  admin_id      Int?
+  tipo_usuario  TipoUsuarioLoginLog
+  ip_address    String?             @db.VarChar(45)
+  user_agent    String?             @db.Text
+  exitoso       Boolean             @default(true)
+  created_at    DateTime            @default(now())
+
+  usuario       Usuario?            @relation(fields: [usuario_id], references: [id], onDelete: SetNull)
+  admin         Administrador?      @relation(fields: [admin_id], references: [id], onDelete: SetNull)
+
+  @@map("login_logs")
+}

@@ -1,0 +1,134 @@
+/* Tailwind v4 base import */
+@import "tailwindcss";
+
+/* Paleta de colores cálidos (panadería) con variables CSS */
+:root {
+  --color-bg: #FFF9F3;         /* Fondo principal */
+  --color-primary: #D8A25E;    /* Primario */
+  --color-secondary: #A15C38;  /* Secundario */
+  --color-text: #2C2C2C;       /* Texto */
+  --color-button: #B87333;     /* Botones */
+  --color-muted: #6B7280;      /* Texto secundario */
+  --surface: #FFFFFF;          /* Superficie clara */
+  --surface-contrast: #F7F3ED; /* Superficie contrastante */
+}
+
+.dark {
+  --color-bg: #1B1A18;         /* Fondo principal oscuro */
+  --color-primary: #E0B774;    /* Primario cálido en dark */
+  --color-secondary: #D78E61;  /* Secundario en dark */
+  --color-text: #EAE7E2;       /* Texto claro */
+  --color-button: #C8864A;     /* Botones en dark */
+  --color-muted: #9CA3AF;      /* Texto secundario */
+  --surface: #24221F;          /* Superficie oscura */
+  --surface-contrast: #2D2B28; /* Superficie contrastante */
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-inter), var(--font-poppins), system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Utilidades base para el proyecto */
+.container {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12;
+}
+
+/* Botones base (compatibles con CartSidebar) */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-200;
+}
+.btn-primary {
+  @apply text-white shadow-sm;
+  background-color: var(--color-button);
+}
+.btn-primary:hover {
+  background-color: #A75E2B; /* hover más oscuro */
+}
+.btn-outline-secondary {
+  @apply border;
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+.btn-outline-secondary:hover {
+  background-color: var(--color-secondary);
+  color: #fff;
+}
+.btn.disabled,
+.btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Tarjetas de sección */
+.card {
+  @apply rounded-2xl border border-black/10 shadow-sm;
+  background-color: color-mix(in oklab, var(--surface) 88%, transparent);
+}
+.card-hover {
+  @apply transition-transform hover:-translate-y-0.5 hover:shadow-md;
+}
+
+/* Tipografías utilitarias */
+.headline {
+  @apply text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight;
+}
+.subheadline {
+  @apply text-base sm:text-lg text-black/70;
+}
+
+/* Navbar sticky con blur */
+.navbar {
+  @apply fixed top-0 left-0 right-0 z-50 transition-shadow;
+}
+.navbar-inner {
+  @apply container flex h-16 items-center justify-between;
+}
+.navbar-blur {
+  background-color: color-mix(in oklab, var(--surface) 75%, transparent);
+  @apply backdrop-blur-md shadow-sm;
+}
+
+/* Footer */
+.footer {
+  @apply mt-12 border-t border-black/10;
+  background-color: color-mix(in oklab, var(--surface) 85%, transparent);
+}
+.footer-inner {
+  @apply container py-10 grid grid-cols-1 sm:grid-cols-3 gap-8;
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: color-mix(in oklab, var(--surface) 70%, transparent);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
