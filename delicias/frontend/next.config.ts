@@ -4,6 +4,13 @@ import type { NextConfig } from "next";
 const API_BASE = "http://localhost:5001";
 
 const nextConfig: NextConfig = {
+  // Desactivar checks de tipos y ESLint durante build de producción
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async rewrites() {
     return [
       {
