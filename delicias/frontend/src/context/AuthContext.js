@@ -3,14 +3,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Configuración de axios:
-// En el navegador, dejaremos baseURL vacío para que las rutas relativas ("/api" y "/uploads")
-// pasen por los rewrites de Next.js (ver next.config.ts) y así evitamos problemas de CORS.
-// En entorno de servidor (SSR o build), usamos la variable de entorno si está definida,
-// con fallback al backend local.
-const isBrowser = typeof window !== 'undefined';
-axios.defaults.baseURL = isBrowser
-  ? ''
-  : process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
+// Usamos rutas relativas ("/api" y "/uploads") para que pasen por los rewrites de Next.js
+// (ver next.config.ts) y así evitamos problemas de CORS tanto en navegador como en SSR.
+axios.defaults.baseURL = '';
 
 const AuthContext = createContext();
 
