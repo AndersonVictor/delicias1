@@ -4,6 +4,10 @@ import ClientShell from "./ClientShell";
 import "../styles/globals.css";
 import { Poppins, Inter } from "next/font/google";
 
+// Forzar renderizado dinámico para toda la aplicación
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "600", "700"],

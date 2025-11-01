@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Deshabilitar generación estática completa
+  output: 'standalone',
+  experimental: {
+    // Forzar renderizado dinámico para todas las páginas
+  },
   async rewrites() {
     return [
       {
