@@ -268,7 +268,7 @@ delicias/
 ├── backend/              # API NestJS
 │   ├── prisma/          # Esquema y migraciones
 │   ├── src/             # Código fuente
-│   │   ├── auth/        # Autenticación
+│   │   ├── auth/        # Autenticación<z>
 │   │   ├── usuarios/    # Gestión de usuarios
 │   │   ├── productos/   # CRUD productos
 │   │   ├── categorias/  # CRUD categorías
