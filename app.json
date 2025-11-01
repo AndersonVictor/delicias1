@@ -1,0 +1,41 @@
+{
+  "name": "Delicias Bakery API",
+  "description": "Backend API para Delicias Bakery con NestJS y Prisma",
+  "keywords": ["nestjs", "prisma", "mysql", "bakery", "ecommerce"],
+  "website": "https://github.com/AndersonVictor/delicias1",
+  "repository": "https://github.com/AndersonVictor/delicias1",
+  "success_url": "/api/docs",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "jawsdb:kitefin",
+      "as": "DATABASE"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "JWT_SECRET": {
+      "description": "Secret key for JWT tokens",
+      "generator": "secret"
+    },
+    "JWT_EXPIRES_IN": {
+      "value": "7d"
+    },
+    "FRONTEND_URL": {
+      "description": "URL of the frontend application",
+      "value": "https://your-frontend.vercel.app"
+    }
+  }
+}
