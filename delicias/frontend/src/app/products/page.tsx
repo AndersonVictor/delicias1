@@ -10,6 +10,9 @@ import { toast } from "react-hot-toast";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Filter, Search as SearchIcon, Tag, DollarSign, Star, CheckCircle } from "lucide-react";
 
+// Deshabilitar generación estática para páginas que usan useSearchParams
+export const dynamic = 'force-dynamic';
+
 type Categoria = { id: number; nombre: string };
 type Producto = {
   id: number;

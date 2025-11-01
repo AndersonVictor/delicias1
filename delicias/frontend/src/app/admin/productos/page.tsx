@@ -5,6 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 
+// Deshabilitar generación estática para páginas que usan useSearchParams
+export const dynamic = 'force-dynamic';
+
 // Normaliza src para evitar errores en next/image con URLs inválidas
 const normalizeProductImageSrc = (src?: string | null): string | null => {
   if (!src || typeof src !== "string") return null;
