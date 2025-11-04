@@ -11,10 +11,18 @@ import { v2 as cloudinary } from 'cloudinary';
 export class FacturacionService {
   constructor(private prisma: PrismaService) {
     // Configure Cloudinary
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+    
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error('Cloudinary configuration is incomplete. Invoice file upload will fail. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+    }
+    
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+      cloud_name: cloudName,
+      api_key: apiKey,
+      api_secret: apiSecret,
     });
   }
 
@@ -35,7 +43,7 @@ export class FacturacionService {
   ): Promise<string> {
     try {
       if (!fs.existsSync(filePath)) {
-        throw new Error(`File not found: ${filePath}`);
+        throw new Error(`Invoice file not found at path: ${filePath}. File may not have been generated properly.`);
       }
 
       const result = await cloudinary.uploader.upload(filePath, {
@@ -509,9 +517,9 @@ export class FacturacionService {
 
       // Clean up temporary files
       try {
-        fs.unlinkSync(pdfAbs);
-        fs.unlinkSync(xmlAbs);
-        fs.unlinkSync(imgAbs);
+        if (fs.existsSync(pdfAbs)) fs.unlinkSync(pdfAbs);
+        if (fs.existsSync(xmlAbs)) fs.unlinkSync(xmlAbs);
+        if (fs.existsSync(imgAbs)) fs.unlinkSync(imgAbs);
       } catch (cleanupError) {
         console.error('Error cleaning up temporary files:', cleanupError);
         // Continue even if cleanup fails
