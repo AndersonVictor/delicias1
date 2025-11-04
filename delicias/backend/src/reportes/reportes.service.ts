@@ -33,7 +33,10 @@ export class ReportesService {
       map.set(key, prev + this.toFloat(p.total));
     }
 
-    const data = Array.from(map.entries()).map(([fecha, total]) => ({ fecha, total }));
+    const data = Array.from(map.entries()).map(([fecha, total]) => ({
+      fecha,
+      total,
+    }));
     return { status: 200, body: { data } };
   }
 
@@ -68,7 +71,10 @@ export class ReportesService {
       map.set(key, prev + this.toFloat(p.total));
     }
 
-    const data = Array.from(map.entries()).map(([semana, total]) => ({ semana, total }));
+    const data = Array.from(map.entries()).map(([semana, total]) => ({
+      semana,
+      total,
+    }));
     return { status: 200, body: { data } };
   }
 
@@ -102,47 +108,87 @@ export class ReportesService {
       map.set(key, prev + this.toFloat(p.total));
     }
 
-    const data = Array.from(map.entries()).map(([mes, total]) => ({ mes, total }));
+    const data = Array.from(map.entries()).map(([mes, total]) => ({
+      mes,
+      total,
+    }));
     return { status: 200, body: { data } };
   }
 
-  async topProductos(params: { desde?: string; hasta?: string; limite?: number }) {
-    const whereDetalle: any = { producto_id: { not: null }, pedido: { estado: { not: 'cancelado' } } };
+  async topProductos(params: {
+    desde?: string;
+    hasta?: string;
+    limite?: number;
+  }) {
+    const whereDetalle: any = {
+      producto_id: { not: null },
+      pedido: { estado: { not: 'cancelado' } },
+    };
     if (params.desde || params.hasta) {
       whereDetalle.pedido.created_at = {};
-      if (params.desde) whereDetalle.pedido.created_at.gte = new Date(params.desde);
-      if (params.hasta) whereDetalle.pedido.created_at.lte = new Date(params.hasta);
+      if (params.desde)
+        whereDetalle.pedido.created_at.gte = new Date(params.desde);
+      if (params.hasta)
+        whereDetalle.pedido.created_at.lte = new Date(params.hasta);
     }
 
     const detalles = await this.prisma.pedidoDetalle.findMany({
       where: whereDetalle,
       include: {
-        producto: { select: { id: true, nombre: true, categoria_id: true, imagen: true } },
+        producto: {
+          select: { id: true, nombre: true, categoria_id: true, imagen: true },
+        },
         pedido: { select: { id: true, created_at: true, estado: true } },
       },
     });
 
-    const agg = new Map<number, { producto_id: number; nombre: string; imagen?: string | null; cantidad: number; subtotal: number }>();
+    const agg = new Map<
+      number,
+      {
+        producto_id: number;
+        nombre: string;
+        imagen?: string | null;
+        cantidad: number;
+        subtotal: number;
+      }
+    >();
     for (const d of detalles) {
       const id = d.producto_id as number;
       if (!id) continue;
-      const prev = agg.get(id) || { producto_id: id, nombre: d.producto?.nombre || `Producto ${id}`, imagen: d.producto?.imagen ?? null, cantidad: 0, subtotal: 0 };
+      const prev = agg.get(id) || {
+        producto_id: id,
+        nombre: d.producto?.nombre || `Producto ${id}`,
+        imagen: d.producto?.imagen ?? null,
+        cantidad: 0,
+        subtotal: 0,
+      };
       prev.cantidad += d.cantidad;
       prev.subtotal += this.toFloat(d.subtotal);
       agg.set(id, prev);
     }
 
-    const items = Array.from(agg.values()).sort((a, b) => b.cantidad - a.cantidad);
+    const items = Array.from(agg.values()).sort(
+      (a, b) => b.cantidad - a.cantidad,
+    );
     const limite = params.limite ?? 10;
     return { status: 200, body: { data: items.slice(0, limite) } };
   }
 
-  async topCategorias(params: { desde?: string; hasta?: string; limite?: number }) {
-    const whereDetalle: any = { producto_id: { not: null }, pedido: { estado: { not: 'cancelado' } } };
+  async topCategorias(params: {
+    desde?: string;
+    hasta?: string;
+    limite?: number;
+  }) {
+    const whereDetalle: any = {
+      producto_id: { not: null },
+      pedido: { estado: { not: 'cancelado' } },
+    };
     if (params.desde || params.hasta) {
       whereDetalle.pedido.created_at = {};
-      if (params.desde) whereDetalle.pedido.created_at.gte = new Date(params.desde);
-      if (params.hasta) whereDetalle.pedido.created_at.lte = new Date(params.hasta);
+      if (params.desde)
+        whereDetalle.pedido.created_at.gte = new Date(params.desde);
+      if (params.hasta)
+        whereDetalle.pedido.created_at.lte = new Date(params.hasta);
     }
 
     const detalles = await this.prisma.pedidoDetalle.findMany({
@@ -153,11 +199,24 @@ export class ReportesService {
       },
     });
 
-    const agg = new Map<number, { categoria_id: number; nombre: string; cantidad: number; subtotal: number }>();
+    const agg = new Map<
+      number,
+      {
+        categoria_id: number;
+        nombre: string;
+        cantidad: number;
+        subtotal: number;
+      }
+    >();
     for (const d of detalles) {
       const catId = d.producto?.categoria_id as number | undefined;
       if (!catId) continue;
-      const prev = agg.get(catId) || { categoria_id: catId, nombre: '', cantidad: 0, subtotal: 0 };
+      const prev = agg.get(catId) || {
+        categoria_id: catId,
+        nombre: '',
+        cantidad: 0,
+        subtotal: 0,
+      };
       prev.cantidad += d.cantidad;
       prev.subtotal += this.toFloat(d.subtotal);
       agg.set(catId, prev);
@@ -166,15 +225,22 @@ export class ReportesService {
     // Rellenar nombre de categoría
     const categoriasIds = Array.from(agg.keys());
     if (categoriasIds.length) {
-      const cats = await this.prisma.categoria.findMany({ where: { id: { in: categoriasIds } }, select: { id: true, nombre: true } });
-      const mapCats = new Map<number, string>(cats.map(c => [c.id, c.nombre]));
+      const cats = await this.prisma.categoria.findMany({
+        where: { id: { in: categoriasIds } },
+        select: { id: true, nombre: true },
+      });
+      const mapCats = new Map<number, string>(
+        cats.map((c) => [c.id, c.nombre]),
+      );
       for (const id of categoriasIds) {
         const item = agg.get(id)!;
         item.nombre = mapCats.get(id) || `Categoría ${id}`;
       }
     }
 
-    const items = Array.from(agg.values()).sort((a, b) => b.cantidad - a.cantidad);
+    const items = Array.from(agg.values()).sort(
+      (a, b) => b.cantidad - a.cantidad,
+    );
     const limite = params.limite ?? 10;
     return { status: 200, body: { data: items.slice(0, limite) } };
   }

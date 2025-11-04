@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query, UseGuards, Req, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+  Req,
+  Patch,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { UsuarioGuard } from '../auth/guards/usuario.guard';
@@ -29,7 +41,10 @@ export class PedidosController {
   ) {
     const p = pagina ? parseInt(pagina, 10) : undefined;
     const l = limite ? parseInt(limite, 10) : undefined;
-    const result = await this.service.misPedidos(req!.user.id, { pagina: p, limite: l });
+    const result = await this.service.misPedidos(req!.user.id, {
+      pagina: p,
+      limite: l,
+    });
     return { statusCode: result.status, ...result.body };
   }
 
@@ -63,7 +78,14 @@ export class PedidosController {
   ) {
     const p = pagina ? parseInt(pagina, 10) : undefined;
     const l = limite ? parseInt(limite, 10) : undefined;
-    const result = await this.service.adminList({ pagina: p, limite: l, estado, desde, hasta, buscar });
+    const result = await this.service.adminList({
+      pagina: p,
+      limite: l,
+      estado,
+      desde,
+      hasta,
+      buscar,
+    });
     return { statusCode: result.status, ...result.body };
   }
 
@@ -80,7 +102,10 @@ export class PedidosController {
   @Patch('admin/:id/estado')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiBearerAuth()
-  async adminEstado(@Param('id', ParseIntPipe) id: number, @Body() body: { estado: 'pendiente' | 'listo' | 'entregado' | 'cancelado' }) {
+  async adminEstado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { estado: 'pendiente' | 'listo' | 'entregado' | 'cancelado' },
+  ) {
     const result = await this.service.adminActualizarEstado(id, body.estado);
     return { statusCode: result.status, ...result.body };
   }
@@ -89,8 +114,14 @@ export class PedidosController {
   @Put('admin/:id/fecha-entrega')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiBearerAuth()
-  async adminFechaEntrega(@Param('id', ParseIntPipe) id: number, @Body() body: { fecha_entrega: string | null }) {
-    const result = await this.service.adminActualizarFechaEntrega(id, body.fecha_entrega);
+  async adminFechaEntrega(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { fecha_entrega: string | null },
+  ) {
+    const result = await this.service.adminActualizarFechaEntrega(
+      id,
+      body.fecha_entrega,
+    );
     return { statusCode: result.status, ...result.body };
   }
 }

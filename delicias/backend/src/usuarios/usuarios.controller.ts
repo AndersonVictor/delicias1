@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Put, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UsuariosService } from './usuarios.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -27,7 +37,10 @@ export class UsuariosController {
   @Put('perfil')
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   async actualizarPerfil(@Req() req: any, @Body() body: UpdatePerfilDto) {
-    const result = await this.usuariosService.actualizarPerfil(req.user.id, body);
+    const result = await this.usuariosService.actualizarPerfil(
+      req.user.id,
+      body,
+    );
     return { statusCode: result.status, ...result.body };
   }
 
@@ -36,9 +49,17 @@ export class UsuariosController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   async cambiarPassword(@Req() req: any, @Body() body: ChangePasswordDto) {
     if (body.confirmarPassword !== body.passwordNueva) {
-      return { statusCode: 400, error: 'Datos inválidos', message: 'Las contraseñas no coinciden' };
+      return {
+        statusCode: 400,
+        error: 'Datos inválidos',
+        message: 'Las contraseñas no coinciden',
+      };
     }
-    const result = await this.usuariosService.cambiarPassword(req.user.id, body.passwordActual, body.passwordNueva);
+    const result = await this.usuariosService.cambiarPassword(
+      req.user.id,
+      body.passwordActual,
+      body.passwordNueva,
+    );
     return { statusCode: result.status, ...result.body };
   }
 
@@ -80,15 +101,24 @@ export class UsuariosController {
   @Patch('admin/:id/estado')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   async adminEstado(@Param('id') id: string, @Body() body: EstadoUsuarioDto) {
-    const result = await this.usuariosService.adminActualizarEstado(parseInt(id), body.activo);
+    const result = await this.usuariosService.adminActualizarEstado(
+      parseInt(id),
+      body.activo,
+    );
     return { statusCode: result.status, ...result.body };
   }
 
   // ADMIN: actualizar datos del usuario
   @Put('admin/:id')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
-  async adminActualizar(@Param('id') id: string, @Body() body: AdminUpdateUsuarioDto) {
-    const result = await this.usuariosService.adminActualizar(parseInt(id), body);
+  async adminActualizar(
+    @Param('id') id: string,
+    @Body() body: AdminUpdateUsuarioDto,
+  ) {
+    const result = await this.usuariosService.adminActualizar(
+      parseInt(id),
+      body,
+    );
     return { statusCode: result.status, ...result.body };
   }
 }

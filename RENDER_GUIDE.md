@@ -66,7 +66,14 @@ JWT_EXPIRES_IN=7d
 NODE_ENV=production
 PORT=10000
 FRONTEND_URL=https://delicias-frontend.onrender.com
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=tu_api_secret
+RUC_EMISOR=20123456789
+RAZON_SOCIAL_EMISOR=Delicias Bakery SAC
 ```
+
+**Importante**: Debes crear una cuenta gratuita en [cloudinary.com](https://cloudinary.com) para obtener las credenciales de Cloudinary. Esto es necesario para el almacenamiento persistente de archivos de facturación.
 
 5. Click **"Create Web Service"**
 6. Espera 10-15 minutos al primer deploy

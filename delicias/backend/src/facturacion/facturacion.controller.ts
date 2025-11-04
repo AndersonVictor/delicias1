@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards, Req, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { UsuarioGuard } from '../auth/guards/usuario.guard';
@@ -15,7 +23,10 @@ export class FacturacionController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   @ApiBearerAuth()
   async emitir(@Body() body: EmitirDto, @Req() req: any) {
-    const decolectaToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.DECOLECTA_TOKEN || undefined;
+    const decolectaToken =
+      (req.headers['x-decolecta-token'] as string | undefined) ||
+      process.env.DECOLECTA_TOKEN ||
+      undefined;
     const result = await this.service.emitir(req.user.id, body, decolectaToken);
     return { statusCode: result.status, ...result.body };
   }
@@ -40,7 +51,12 @@ export class FacturacionController {
   ) {
     const p = pagina ? parseInt(pagina, 10) : undefined;
     const l = limite ? parseInt(limite, 10) : undefined;
-    const result = await this.service.adminComprobantes({ pagina: p, limite: l, tipo, estado });
+    const result = await this.service.adminComprobantes({
+      pagina: p,
+      limite: l,
+      tipo,
+      estado,
+    });
     return { statusCode: result.status, ...result.body };
   }
 
@@ -49,7 +65,10 @@ export class FacturacionController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   @ApiBearerAuth()
   async consultaDni(@Query('numero') numero: string, @Req() req: any) {
-    const decolectaToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.DECOLECTA_TOKEN || undefined;
+    const decolectaToken =
+      (req.headers['x-decolecta-token'] as string | undefined) ||
+      process.env.DECOLECTA_TOKEN ||
+      undefined;
     const result = await this.service.consultaReniecDni(numero, decolectaToken);
     return { statusCode: result.status, ...result.body };
   }
@@ -58,7 +77,10 @@ export class FacturacionController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   @ApiBearerAuth()
   async consultaRuc(@Query('numero') numero: string, @Req() req: any) {
-    const decolectaToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.DECOLECTA_TOKEN || undefined;
+    const decolectaToken =
+      (req.headers['x-decolecta-token'] as string | undefined) ||
+      process.env.DECOLECTA_TOKEN ||
+      undefined;
     const result = await this.service.consultaSunatRuc(numero, decolectaToken);
     return { statusCode: result.status, ...result.body };
   }

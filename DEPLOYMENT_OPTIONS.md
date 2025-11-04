@@ -257,6 +257,41 @@ Todo: Heroku (muy estable y confiable)
 - Siempre ejecuta `npx prisma generate` antes del build
 - Verifica que `postinstall` script exista en `package.json`
 
+### Error: "Cloudinary upload failed"
+- Verifica que las variables de Cloudinary estén configuradas correctamente
+- Asegúrate de tener una cuenta gratuita en [cloudinary.com](https://cloudinary.com)
+- Verifica que `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET` estén configuradas
+
+---
+
+## 🔧 Configuración de Cloudinary (Requerido para Facturas)
+
+El sistema usa **Cloudinary** para almacenar archivos PDF, XML e imágenes de comprobantes de forma persistente.
+
+### Pasos para configurar Cloudinary:
+
+1. **Crear cuenta gratuita**:
+   - Ve a [cloudinary.com](https://cloudinary.com)
+   - Regístrate con tu email (plan gratuito: 25 GB)
+
+2. **Obtener credenciales**:
+   - En tu Dashboard, ve a "Settings" → "API Keys"
+   - Copia tu **Cloud Name**, **API Key** y **API Secret**
+
+3. **Configurar variables de entorno en tu plataforma**:
+
+**Para Render/Vercel/Railway/Heroku**, agrega estas variables al backend:
+
+```bash
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=tu_api_secret
+RUC_EMISOR=20123456789
+RAZON_SOCIAL_EMISOR=Delicias Bakery SAC
+```
+
+**Nota**: Las variables `RUC_EMISOR` y `RAZON_SOCIAL_EMISOR` son para los datos del emisor en las facturas.
+
 ---
 
 ## ✅ Siguiente Paso Recomendado

@@ -25,7 +25,12 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: LoginDto, @Req() req: any) {
-    const result = await this.authService.loginUsuario(body.email, body.password, req.ip, req.headers['user-agent']);
+    const result = await this.authService.loginUsuario(
+      body.email,
+      body.password,
+      req.ip,
+      req.headers['user-agent'],
+    );
     return {
       statusCode: result.status,
       ...result.body,
@@ -34,7 +39,12 @@ export class AuthController {
 
   @Post('admin/login')
   async adminLogin(@Body() body: LoginDto, @Req() req: any) {
-    const result = await this.authService.loginAdmin(body.email, body.password, req.ip, req.headers['user-agent']);
+    const result = await this.authService.loginAdmin(
+      body.email,
+      body.password,
+      req.ip,
+      req.headers['user-agent'],
+    );
     return {
       statusCode: result.status,
       ...result.body,

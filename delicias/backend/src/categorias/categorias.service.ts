@@ -19,13 +19,17 @@ export class CategoriasService {
   }
 
   async findById(id: number) {
-    const categoria = await this.prisma.categoria.findFirst({ where: { id, activo: true } });
+    const categoria = await this.prisma.categoria.findFirst({
+      where: { id, activo: true },
+    });
     if (!categoria) throw new NotFoundException('Categoría no encontrada');
     return categoria;
   }
 
   async findProductosByCategoria(id: number, pagina = 1, limite = 20) {
-    const categoria = await this.prisma.categoria.findFirst({ where: { id, activo: true } });
+    const categoria = await this.prisma.categoria.findFirst({
+      where: { id, activo: true },
+    });
     if (!categoria) throw new NotFoundException('Categoría no encontrada');
 
     const skip = (pagina - 1) * limite;
@@ -59,7 +63,12 @@ export class CategoriasService {
   }
 
   // ADMIN: listar con paginación y búsqueda
-  async adminList(params: { limite?: number; pagina?: number; buscar?: string; activo?: boolean | undefined }) {
+  async adminList(params: {
+    limite?: number;
+    pagina?: number;
+    buscar?: string;
+    activo?: boolean | undefined;
+  }) {
     const limite = params.limite ?? 20;
     const pagina = params.pagina ?? 1;
     const skip = (pagina - 1) * limite;
@@ -100,7 +109,8 @@ export class CategoriasService {
   // ADMIN: obtener categoria
   async adminGet(id: number) {
     const categoria = await this.prisma.categoria.findUnique({ where: { id } });
-    if (!categoria) return { status: 404, body: { error: 'Categoría no encontrada' } };
+    if (!categoria)
+      return { status: 404, body: { error: 'Categoría no encontrada' } };
     return { status: 200, body: { categoria } };
   }
 
@@ -108,11 +118,25 @@ export class CategoriasService {
   async adminCrear(body: CreateCategoriaDto) {
     const nombre = String(body.nombre || '').trim();
     if (!nombre || nombre.length < 2) {
-      return { status: 400, body: { error: 'Datos inválidos', message: 'El nombre debe tener al menos 2 caracteres' } };
+      return {
+        status: 400,
+        body: {
+          error: 'Datos inválidos',
+          message: 'El nombre debe tener al menos 2 caracteres',
+        },
+      };
     }
-    const existente = await this.prisma.categoria.findUnique({ where: { nombre } });
+    const existente = await this.prisma.categoria.findUnique({
+      where: { nombre },
+    });
     if (existente) {
-      return { status: 400, body: { error: 'Duplicado', message: 'Ya existe una categoría con ese nombre' } };
+      return {
+        status: 400,
+        body: {
+          error: 'Duplicado',
+          message: 'Ya existe una categoría con ese nombre',
+        },
+      };
     }
     const creada = await this.prisma.categoria.create({
       data: {
@@ -121,74 +145,140 @@ export class CategoriasService {
         imagen: body.imagen || null,
       },
     });
-    return { status: 201, body: { message: 'Categoría creada', categoria: creada } };
+    return {
+      status: 201,
+      body: { message: 'Categoría creada', categoria: creada },
+    };
   }
 
   // ADMIN: actualizar categoría
   async adminActualizar(id: number, body: UpdateCategoriaDto) {
     const existente = await this.prisma.categoria.findUnique({ where: { id } });
-    if (!existente) return { status: 404, body: { error: 'Categoría no encontrada' } };
+    if (!existente)
+      return { status: 404, body: { error: 'Categoría no encontrada' } };
 
     const data: any = {};
     if (body.nombre !== undefined) {
       const nombre = String(body.nombre).trim();
       if (!nombre || nombre.length < 2) {
-        return { status: 400, body: { error: 'Datos inválidos', message: 'El nombre debe tener al menos 2 caracteres' } };
+        return {
+          status: 400,
+          body: {
+            error: 'Datos inválidos',
+            message: 'El nombre debe tener al menos 2 caracteres',
+          },
+        };
       }
       if (nombre !== existente.nombre) {
-        const dup = await this.prisma.categoria.findUnique({ where: { nombre } });
-        if (dup) return { status: 400, body: { error: 'Duplicado', message: 'Ya existe una categoría con ese nombre' } };
+        const dup = await this.prisma.categoria.findUnique({
+          where: { nombre },
+        });
+        if (dup)
+          return {
+            status: 400,
+            body: {
+              error: 'Duplicado',
+              message: 'Ya existe una categoría con ese nombre',
+            },
+          };
       }
       data.nombre = nombre;
     }
-    if (body.descripcion !== undefined) data.descripcion = body.descripcion || null;
+    if (body.descripcion !== undefined)
+      data.descripcion = body.descripcion || null;
     if (body.imagen !== undefined) data.imagen = body.imagen || null;
 
-    if (Object.keys(data).length === 0) return { status: 400, body: { error: 'Sin cambios' } };
+    if (Object.keys(data).length === 0)
+      return { status: 400, body: { error: 'Sin cambios' } };
 
-    const actualizada = await this.prisma.categoria.update({ where: { id }, data });
-    return { status: 200, body: { message: 'Categoría actualizada', categoria: actualizada } };
+    const actualizada = await this.prisma.categoria.update({
+      where: { id },
+      data,
+    });
+    return {
+      status: 200,
+      body: { message: 'Categoría actualizada', categoria: actualizada },
+    };
   }
 
   // ADMIN: actualizar imagen subida local
   async adminActualizarImagen(id: number, file: Express.Multer.File) {
     try {
-      const existente = await this.prisma.categoria.findUnique({ where: { id } });
+      const existente = await this.prisma.categoria.findUnique({
+        where: { id },
+      });
       if (!existente) {
         // limpiar archivo subido si no existe categoría
         if (file?.path) this.safeUnlink(file.path);
         return { status: 404, body: { error: 'Categoría no encontrada' } };
       }
-      if (!file) return { status: 400, body: { error: 'Archivo requerido', message: 'Debe enviar una imagen' } };
+      if (!file)
+        return {
+          status: 400,
+          body: {
+            error: 'Archivo requerido',
+            message: 'Debe enviar una imagen',
+          },
+        };
 
       const nuevaImagen = `categorias/${file.filename}`;
       // eliminar imagen anterior si era local
       if (existente.imagen && !String(existente.imagen).startsWith('http')) {
-        const anterior = path.join(process.cwd(), 'uploads', String(existente.imagen));
+        const anterior = path.join(
+          process.cwd(),
+          'uploads',
+          String(existente.imagen),
+        );
         this.safeUnlink(anterior);
       }
-      const actualizada = await this.prisma.categoria.update({ where: { id }, data: { imagen: nuevaImagen } });
-      return { status: 200, body: { message: 'Imagen actualizada', categoria: actualizada } };
+      const actualizada = await this.prisma.categoria.update({
+        where: { id },
+        data: { imagen: nuevaImagen },
+      });
+      return {
+        status: 200,
+        body: { message: 'Imagen actualizada', categoria: actualizada },
+      };
     } catch (e) {
       if (file?.path) this.safeUnlink(file.path);
-      return { status: 500, body: { error: 'Error interno', message: 'No se pudo actualizar la imagen' } };
+      return {
+        status: 500,
+        body: {
+          error: 'Error interno',
+          message: 'No se pudo actualizar la imagen',
+        },
+      };
     }
   }
 
   // ADMIN: actualizar estado
   async adminActualizarEstado(id: number, activo: boolean) {
     const existente = await this.prisma.categoria.findUnique({ where: { id } });
-    if (!existente) return { status: 404, body: { error: 'Categoría no encontrada' } };
-    const actualizada = await this.prisma.categoria.update({ where: { id }, data: { activo: Boolean(activo) } });
-    return { status: 200, body: { message: 'Estado actualizado', categoria: actualizada } };
+    if (!existente)
+      return { status: 404, body: { error: 'Categoría no encontrada' } };
+    const actualizada = await this.prisma.categoria.update({
+      where: { id },
+      data: { activo: Boolean(activo) },
+    });
+    return {
+      status: 200,
+      body: { message: 'Estado actualizado', categoria: actualizada },
+    };
   }
 
   // ADMIN: eliminar (soft delete)
   async adminEliminar(id: number) {
     const existente = await this.prisma.categoria.findUnique({ where: { id } });
-    if (!existente) return { status: 404, body: { error: 'Categoría no encontrada' } };
-    const actualizada = await this.prisma.categoria.update({ where: { id }, data: { activo: false } });
-    return { status: 200, body: { message: 'Categoría eliminada', categoria: actualizada } };
+    if (!existente)
+      return { status: 404, body: { error: 'Categoría no encontrada' } };
+    const actualizada = await this.prisma.categoria.update({
+      where: { id },
+      data: { activo: false },
+    });
+    return {
+      status: 200,
+      body: { message: 'Categoría eliminada', categoria: actualizada },
+    };
   }
 
   private safeUnlink(p: string) {

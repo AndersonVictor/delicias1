@@ -87,7 +87,14 @@ JWT_EXPIRES_IN=7d
 NODE_ENV=production
 PORT=3000
 FRONTEND_URL=https://tu-frontend.railway.app
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=tu_api_secret
+RUC_EMISOR=20123456789
+RAZON_SOCIAL_EMISOR=Delicias Bakery SAC
 ```
+
+**Nota sobre Cloudinary**: Es necesario crear una cuenta gratuita en [cloudinary.com](https://cloudinary.com) y obtener las credenciales para el almacenamiento de archivos de facturación (PDF, XML, imágenes).
 
 4. Configura el **Root Directory**: `delicias/backend`
 5. Configura los comandos:
@@ -221,6 +228,11 @@ Esto iniciará:
 | `PORT` | Puerto del servidor | `3000` |
 | `NODE_ENV` | Entorno de ejecución | `production` |
 | `FRONTEND_URL` | URL del frontend para CORS | `https://frontend.com` |
+| `CLOUDINARY_CLOUD_NAME` | Nombre de cuenta Cloudinary | `tu_cloud_name` |
+| `CLOUDINARY_API_KEY` | API Key de Cloudinary | `123456789012345` |
+| `CLOUDINARY_API_SECRET` | API Secret de Cloudinary | `tu_api_secret` |
+| `RUC_EMISOR` | RUC de la empresa | `20123456789` |
+| `RAZON_SOCIAL_EMISOR` | Razón social de la empresa | `Delicias Bakery SAC` |
 
 ### Frontend (.env.local)
 

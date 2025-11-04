@@ -14,7 +14,10 @@ export class UpdateCategoriaDto {
   @Length(0, 2000)
   descripcion?: string | null;
 
-  @ApiPropertyOptional({ example: 'categorias/categoria-12345.png', description: 'Ruta local en uploads o URL completa' })
+  @ApiPropertyOptional({
+    example: 'categorias/categoria-12345.png',
+    description: 'Ruta local en uploads o URL completa',
+  })
   @IsOptional()
   @IsString()
   imagen?: string | null;
