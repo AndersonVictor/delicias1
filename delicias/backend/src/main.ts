@@ -25,7 +25,9 @@ async function bootstrap() {
   // Swagger (OpenAPI) configuration
   const config = new DocumentBuilder()
     .setTitle('Delicias API')
-    .setDescription('API de Delicias - Autenticación, Usuarios, Productos y Categorías')
+    .setDescription(
+      'API de Delicias - Autenticación, Usuarios, Productos y Categorías',
+    )
     .setVersion('1.0.0')
     .addBearerAuth()
     .build();

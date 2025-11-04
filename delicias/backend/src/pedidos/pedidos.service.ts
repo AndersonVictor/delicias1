@@ -17,14 +17,28 @@ export class PedidosService {
   async crearPedido(usuarioId: number, dto: CreatePedidoDto) {
     // Validaciones básicas
     if (!dto.productos || dto.productos.length === 0) {
-      return { status: 400, body: { error: 'Carrito vacío', message: 'No se proporcionaron productos' } };
+      return {
+        status: 400,
+        body: {
+          error: 'Carrito vacío',
+          message: 'No se proporcionaron productos',
+        },
+      };
     }
 
     // Obtener productos y calcular total
     const productoIds = dto.productos.map((p) => p.id);
-    const productos = await this.prisma.producto.findMany({ where: { id: { in: productoIds }, activo: true } });
+    const productos = await this.prisma.producto.findMany({
+      where: { id: { in: productoIds }, activo: true },
+    });
     if (productos.length !== productoIds.length) {
-      return { status: 400, body: { error: 'Producto inválido', message: 'Uno o más productos no existen o están inactivos' } };
+      return {
+        status: 400,
+        body: {
+          error: 'Producto inválido',
+          message: 'Uno o más productos no existen o están inactivos',
+        },
+      };
     }
 
     const detalles = dto.productos.map((item) => {
@@ -40,7 +54,10 @@ export class PedidosService {
       };
     });
 
-    const total = detalles.reduce((acc, d) => acc + this.toFloat(d.subtotal), 0);
+    const total = detalles.reduce(
+      (acc, d) => acc + this.toFloat(d.subtotal),
+      0,
+    );
 
     const fechaEntrega = dto.fecha_entrega ? new Date(dto.fecha_entrega) : null;
 
@@ -56,7 +73,9 @@ export class PedidosService {
         detalles: { create: detalles },
       },
       include: {
-        detalles: { include: { producto: { select: { nombre: true, imagen: true } } } },
+        detalles: {
+          include: { producto: { select: { nombre: true, imagen: true } } },
+        },
       },
     });
 
@@ -81,7 +100,10 @@ export class PedidosService {
     };
   }
 
-  async misPedidos(usuarioId: number, params: { pagina?: number; limite?: number }) {
+  async misPedidos(
+    usuarioId: number,
+    params: { pagina?: number; limite?: number },
+  ) {
     const pagina = params.pagina ?? 1;
     const limite = params.limite ?? 10;
     const skip = (pagina - 1) * limite;
@@ -122,15 +144,34 @@ export class PedidosService {
   async obtenerPedido(usuarioId: number, pedidoId: number) {
     const pedido = await this.prisma.pedido.findFirst({
       where: { id: pedidoId, usuario_id: usuarioId },
-      include: { detalles: { include: { producto: { select: { nombre: true, imagen: true, precio: true } } } } },
+      include: {
+        detalles: {
+          include: {
+            producto: { select: { nombre: true, imagen: true, precio: true } },
+          },
+        },
+      },
     });
     if (!pedido) {
-      return { status: 404, body: { error: 'Pedido no encontrado', message: 'El pedido solicitado no existe' } };
+      return {
+        status: 404,
+        body: {
+          error: 'Pedido no encontrado',
+          message: 'El pedido solicitado no existe',
+        },
+      };
     }
     return {
       status: 200,
       body: {
-        pedido: { id: pedido.id, total: this.toFloat(pedido.total), estado: pedido.estado, created_at: pedido.created_at, notas: pedido.notas || null, direccion_entrega: pedido.direccion_entrega || null },
+        pedido: {
+          id: pedido.id,
+          total: this.toFloat(pedido.total),
+          estado: pedido.estado,
+          created_at: pedido.created_at,
+          notas: pedido.notas || null,
+          direccion_entrega: pedido.direccion_entrega || null,
+        },
         detalles: pedido.detalles.map((d) => ({
           producto_nombre: d.producto?.nombre || null,
           producto_imagen: d.producto?.imagen || null,
@@ -143,17 +184,46 @@ export class PedidosService {
   }
 
   async cancelarPedido(usuarioId: number, pedidoId: number) {
-    const pedido = await this.prisma.pedido.findFirst({ where: { id: pedidoId, usuario_id: usuarioId } });
-    if (!pedido) return { status: 404, body: { error: 'Pedido no encontrado', message: 'El pedido solicitado no existe' } };
-    if (pedido.estado === 'entregado' || pedido.estado === 'cancelado' || pedido.estado === 'listo') {
-      return { status: 400, body: { error: 'No cancelable', message: 'El pedido no puede ser cancelado en su estado actual' } };
+    const pedido = await this.prisma.pedido.findFirst({
+      where: { id: pedidoId, usuario_id: usuarioId },
+    });
+    if (!pedido)
+      return {
+        status: 404,
+        body: {
+          error: 'Pedido no encontrado',
+          message: 'El pedido solicitado no existe',
+        },
+      };
+    if (
+      pedido.estado === 'entregado' ||
+      pedido.estado === 'cancelado' ||
+      pedido.estado === 'listo'
+    ) {
+      return {
+        status: 400,
+        body: {
+          error: 'No cancelable',
+          message: 'El pedido no puede ser cancelado en su estado actual',
+        },
+      };
     }
-    await this.prisma.pedido.update({ where: { id: pedidoId }, data: { estado: 'cancelado' } });
+    await this.prisma.pedido.update({
+      where: { id: pedidoId },
+      data: { estado: 'cancelado' },
+    });
     return { status: 200, body: { message: 'Pedido cancelado exitosamente' } };
   }
 
   // ADMIN: listar pedidos
-  async adminList(params: { pagina?: number; limite?: number; estado?: string; desde?: string; hasta?: string; buscar?: string }) {
+  async adminList(params: {
+    pagina?: number;
+    limite?: number;
+    estado?: string;
+    desde?: string;
+    hasta?: string;
+    buscar?: string;
+  }) {
     const pagina = params.pagina ?? 1;
     const limite = params.limite ?? 20;
     const skip = (pagina - 1) * limite;
@@ -189,7 +259,12 @@ export class PedidosService {
       this.prisma.pedido.findMany({
         where,
         orderBy: { created_at: 'desc' },
-        include: { detalles: true, usuario: { select: { id: true, nombre: true, apellido: true, email: true } } },
+        include: {
+          detalles: true,
+          usuario: {
+            select: { id: true, nombre: true, apellido: true, email: true },
+          },
+        },
         skip,
         take: limite,
       }),
@@ -198,7 +273,14 @@ export class PedidosService {
 
     const rows = pedidos.map((p) => ({
       id: p.id,
-      usuario: p.usuario ? { id: p.usuario.id, nombre: p.usuario.nombre, apellido: p.usuario.apellido, email: p.usuario.email } : null,
+      usuario: p.usuario
+        ? {
+            id: p.usuario.id,
+            nombre: p.usuario.nombre,
+            apellido: p.usuario.apellido,
+            email: p.usuario.email,
+          }
+        : null,
       total: this.toFloat(p.total),
       estado: p.estado,
       created_at: p.created_at,
@@ -213,7 +295,12 @@ export class PedidosService {
       status: 200,
       body: {
         pedidos: rows,
-        pagination: { total, pagina, limite, totalPaginas: Math.ceil(total / limite) },
+        pagination: {
+          total,
+          pagina,
+          limite,
+          totalPaginas: Math.ceil(total / limite),
+        },
       },
     };
   }
@@ -222,16 +309,46 @@ export class PedidosService {
   async adminGet(id: number) {
     const p = await this.prisma.pedido.findUnique({
       where: { id },
-      include: { detalles: { include: { producto: { select: { nombre: true, imagen: true, precio: true } } } }, usuario: { select: { id: true, nombre: true, apellido: true, email: true, telefono: true } } },
+      include: {
+        detalles: {
+          include: {
+            producto: { select: { nombre: true, imagen: true, precio: true } },
+          },
+        },
+        usuario: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            email: true,
+            telefono: true,
+          },
+        },
+      },
     });
-    if (!p) return { status: 404, body: { error: 'Pedido no encontrado', message: 'El pedido solicitado no existe' } };
+    if (!p)
+      return {
+        status: 404,
+        body: {
+          error: 'Pedido no encontrado',
+          message: 'El pedido solicitado no existe',
+        },
+      };
 
     return {
       status: 200,
       body: {
         pedido: {
           id: p.id,
-          usuario: p.usuario ? { id: p.usuario.id, nombre: p.usuario.nombre, apellido: p.usuario.apellido, email: p.usuario.email, telefono: p.usuario.telefono } : null,
+          usuario: p.usuario
+            ? {
+                id: p.usuario.id,
+                nombre: p.usuario.nombre,
+                apellido: p.usuario.apellido,
+                email: p.usuario.email,
+                telefono: p.usuario.telefono,
+              }
+            : null,
           total: this.toFloat(p.total),
           estado: p.estado,
           created_at: p.created_at,
@@ -252,16 +369,41 @@ export class PedidosService {
   }
 
   // ADMIN: actualizar estado
-  async adminActualizarEstado(id: number, estado: 'pendiente' | 'listo' | 'entregado' | 'cancelado') {
-    const pedido = await this.prisma.pedido.findUnique({ where: { id }, select: { id: true, estado: true } });
-    if (!pedido) return { status: 404, body: { error: 'Pedido no encontrado', message: 'El pedido solicitado no existe' } };
+  async adminActualizarEstado(
+    id: number,
+    estado: 'pendiente' | 'listo' | 'entregado' | 'cancelado',
+  ) {
+    const pedido = await this.prisma.pedido.findUnique({
+      where: { id },
+      select: { id: true, estado: true },
+    });
+    if (!pedido)
+      return {
+        status: 404,
+        body: {
+          error: 'Pedido no encontrado',
+          message: 'El pedido solicitado no existe',
+        },
+      };
 
     if (!['pendiente', 'listo', 'entregado', 'cancelado'].includes(estado)) {
-      return { status: 400, body: { error: 'Estado inválido', message: 'Estado de pedido no reconocido' } };
+      return {
+        status: 400,
+        body: {
+          error: 'Estado inválido',
+          message: 'Estado de pedido no reconocido',
+        },
+      };
     }
 
     if (pedido.estado === 'entregado' || pedido.estado === 'cancelado') {
-      return { status: 400, body: { error: 'No modificable', message: 'El pedido no puede cambiarse en su estado actual' } };
+      return {
+        status: 400,
+        body: {
+          error: 'No modificable',
+          message: 'El pedido no puede cambiarse en su estado actual',
+        },
+      };
     }
 
     await this.prisma.pedido.update({ where: { id }, data: { estado } });
@@ -270,10 +412,29 @@ export class PedidosService {
 
   // ADMIN: actualizar fecha de entrega
   async adminActualizarFechaEntrega(id: number, fecha: string | null) {
-    const pedido = await this.prisma.pedido.findUnique({ where: { id }, select: { id: true } });
-    if (!pedido) return { status: 404, body: { error: 'Pedido no encontrado', message: 'El pedido solicitado no existe' } };
+    const pedido = await this.prisma.pedido.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!pedido)
+      return {
+        status: 404,
+        body: {
+          error: 'Pedido no encontrado',
+          message: 'El pedido solicitado no existe',
+        },
+      };
     const fechaEntrega = fecha ? new Date(fecha) : null;
-    await this.prisma.pedido.update({ where: { id }, data: { fecha_entrega: fechaEntrega } });
-    return { status: 200, body: { message: 'Fecha de entrega actualizada', fecha_entrega: fechaEntrega } };
+    await this.prisma.pedido.update({
+      where: { id },
+      data: { fecha_entrega: fechaEntrega },
+    });
+    return {
+      status: 200,
+      body: {
+        message: 'Fecha de entrega actualizada',
+        fecha_entrega: fechaEntrega,
+      },
+    };
   }
 }

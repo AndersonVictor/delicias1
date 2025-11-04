@@ -14,6 +14,10 @@ export class ContactoController {
   @ApiCreatedResponse({ description: 'Mensaje de contacto recibido' })
   async create(@Body() dto: CreateContactoDto) {
     const id = await this.contactoService.create(dto);
-    return { ok: true, id, message: 'Mensaje recibido. ¡Gracias por contactarnos!' };
+    return {
+      ok: true,
+      id,
+      message: 'Mensaje recibido. ¡Gracias por contactarnos!',
+    };
   }
 }

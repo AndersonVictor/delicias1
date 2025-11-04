@@ -1,4 +1,18 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CategoriasService } from './categorias.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -32,7 +46,11 @@ export class CategoriasController {
     @Query('pagina') pagina = '1',
     @Query('limite') limite = '20',
   ) {
-    return this.service.findProductosByCategoria(id, parseInt(pagina, 10), parseInt(limite, 10));
+    return this.service.findProductosByCategoria(
+      id,
+      parseInt(pagina, 10),
+      parseInt(limite, 10),
+    );
   }
 
   // ADMIN: listar categorias con paginación y búsqueda
@@ -73,18 +91,30 @@ export class CategoriasController {
           cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = path.extname(file.originalname);
           cb(null, 'categoria-' + uniqueSuffix + ext);
         },
       }),
       limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880') },
-      fileFilter: (req: any, file: Express.Multer.File, cb: FileFilterCallback) => {
+      fileFilter: (
+        req: any,
+        file: Express.Multer.File,
+        cb: FileFilterCallback,
+      ) => {
         const allowedTypes = /jpeg|jpg|png|gif|webp/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const extname = allowedTypes.test(
+          path.extname(file.originalname).toLowerCase(),
+        );
         const mimetype = allowedTypes.test(file.mimetype);
         if (mimetype && extname) return cb(null, true);
-        cb(Object.assign(new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'), { status: 400 }));
+        cb(
+          Object.assign(
+            new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'),
+            { status: 400 },
+          ),
+        );
       },
     };
   }
@@ -100,7 +130,10 @@ export class CategoriasController {
   // ADMIN: actualizar categoría (sin archivo)
   @Put('admin/:id')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
-  async adminActualizar(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCategoriaDto) {
+  async adminActualizar(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateCategoriaDto,
+  ) {
     const result = await this.service.adminActualizar(id, body);
     return { statusCode: result.status, ...result.body };
   }
@@ -109,7 +142,9 @@ export class CategoriasController {
   @Put('admin/:id/imagen')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('imagen', CategoriasController.getMulterOptions()))
+  @UseInterceptors(
+    FileInterceptor('imagen', CategoriasController.getMulterOptions()),
+  )
   async adminActualizarImagen(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
@@ -121,7 +156,10 @@ export class CategoriasController {
   // ADMIN: activar/desactivar categoría
   @Patch('admin/:id/estado')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
-  async adminEstado(@Param('id', ParseIntPipe) id: number, @Body() body: { activo: boolean }) {
+  async adminEstado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { activo: boolean },
+  ) {
     const result = await this.service.adminActualizarEstado(id, body.activo);
     return { statusCode: result.status, ...result.body };
   }

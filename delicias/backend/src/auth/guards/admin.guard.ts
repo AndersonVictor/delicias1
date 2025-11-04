@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  ForbiddenException,
+} from '@nestjs/common';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -6,7 +11,9 @@ export class AdminGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const user = req.user;
     if (!user || user.tipo !== 'admin') {
-      throw new ForbiddenException('Acceso denegado: se requiere rol administrador');
+      throw new ForbiddenException(
+        'Acceso denegado: se requiere rol administrador',
+      );
     }
     return true;
   }

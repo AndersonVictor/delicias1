@@ -9,14 +9,20 @@ export class ReportesController {
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/ventas-diarias')
-  async ventasDiarias(@Query('desde') desde?: string, @Query('hasta') hasta?: string) {
+  async ventasDiarias(
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
     const result = await this.service.ventasDiarias({ desde, hasta });
     return result.body;
   }
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/ventas-semanales')
-  async ventasSemanales(@Query('desde') desde?: string, @Query('hasta') hasta?: string) {
+  async ventasSemanales(
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
     const result = await this.service.ventasSemanales({ desde, hasta });
     return result.body;
   }
@@ -24,22 +30,41 @@ export class ReportesController {
   // NUEVO: ventas mensuales
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/ventas-mensuales')
-  async ventasMensuales(@Query('desde') desde?: string, @Query('hasta') hasta?: string) {
+  async ventasMensuales(
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
     const result = await this.service.ventasMensuales({ desde, hasta });
     return result.body;
   }
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/top-productos')
-  async topProductos(@Query('desde') desde?: string, @Query('hasta') hasta?: string, @Query('limite') limite?: string) {
-    const result = await this.service.topProductos({ desde, hasta, limite: limite ? parseInt(limite, 10) : undefined });
+  async topProductos(
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+    @Query('limite') limite?: string,
+  ) {
+    const result = await this.service.topProductos({
+      desde,
+      hasta,
+      limite: limite ? parseInt(limite, 10) : undefined,
+    });
     return result.body;
   }
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/top-categorias')
-  async topCategorias(@Query('desde') desde?: string, @Query('hasta') hasta?: string, @Query('limite') limite?: string) {
-    const result = await this.service.topCategorias({ desde, hasta, limite: limite ? parseInt(limite, 10) : undefined });
+  async topCategorias(
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+    @Query('limite') limite?: string,
+  ) {
+    const result = await this.service.topCategorias({
+      desde,
+      hasta,
+      limite: limite ? parseInt(limite, 10) : undefined,
+    });
     return result.body;
   }
 }

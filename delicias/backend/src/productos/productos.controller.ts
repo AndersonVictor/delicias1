@@ -37,7 +37,13 @@ export class ProductosController {
     @Query('limite') limite?: string,
     @Query('pagina') pagina?: string,
   ) {
-    return this.service.listarProductos({ categoria, destacado, buscar, limite, pagina });
+    return this.service.listarProductos({
+      categoria,
+      destacado,
+      buscar,
+      limite,
+      pagina,
+    });
   }
 
   @Get(':id')
@@ -57,18 +63,30 @@ export class ProductosController {
           cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = path.extname(file.originalname);
           cb(null, 'producto-' + uniqueSuffix + ext);
         },
       }),
       limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE || '5242880') },
-      fileFilter: (req: any, file: Express.Multer.File, cb: FileFilterCallback) => {
+      fileFilter: (
+        req: any,
+        file: Express.Multer.File,
+        cb: FileFilterCallback,
+      ) => {
         const allowedTypes = /jpeg|jpg|png|gif|webp/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const extname = allowedTypes.test(
+          path.extname(file.originalname).toLowerCase(),
+        );
         const mimetype = allowedTypes.test(file.mimetype);
         if (mimetype && extname) return cb(null, true);
-        cb(Object.assign(new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'), { status: 400 }));
+        cb(
+          Object.assign(
+            new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'),
+            { status: 400 },
+          ),
+        );
       },
     };
   }
@@ -76,7 +94,9 @@ export class ProductosController {
   @Post()
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('imagen', ProductosController.getMulterOptions()))
+  @UseInterceptors(
+    FileInterceptor('imagen', ProductosController.getMulterOptions()),
+  )
   async crearProducto(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateProductoDto,
@@ -88,7 +108,9 @@ export class ProductosController {
   @Put(':id')
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('imagen', ProductosController.getMulterOptions()))
+  @UseInterceptors(
+    FileInterceptor('imagen', ProductosController.getMulterOptions()),
+  )
   async actualizarProducto(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
