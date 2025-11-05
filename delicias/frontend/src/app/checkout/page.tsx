@@ -30,8 +30,8 @@ export default function CheckoutPage() {
   const [tipoDocumento, setTipoDocumento] = useState<"DNI" | "RUC">("DNI");
   const [numeroDocumento, setNumeroDocumento] = useState("");
   // Datos de identidad consultados (RENIEC/SUNAT)
-  const [dniData, setDniData] = useState<any | null>(null);
-  const [rucData, setRucData] = useState<any | null>(null);
+  const [dniData, setDniData] = useState<Record<string, unknown> | null>(null);
+  const [rucData, setRucData] = useState<Record<string, unknown> | null>(null);
   const [docMessage, setDocMessage] = useState<string | null>(null);
 
   // Field validation errors
