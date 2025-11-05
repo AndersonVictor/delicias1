@@ -5,9 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import Link from "next/link";
 import { formatPEN as currency } from "@/utils/currency";
-import { getImageSrc } from "@/utils/imageUtils";
+import getImageSrc from "@/utils/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 interface CartItem {
   id: number;
