@@ -240,7 +240,9 @@ export class FacturacionService {
       try {
         const svgBuf = Buffer.from(svg);
         await sharp(svgBuf).png().toFile(imgAbs);
-      } catch {}
+      } catch (imgErr) {
+        console.error('Error al generar imagen PNG del comprobante:', imgErr);
+      }
     } catch (e) {
       // Si falla la generación del PDF, continuar con el flujo sin bloquear emisión
     }
@@ -285,14 +287,18 @@ export class FacturacionService {
         const content = fs.readFileSync(jsonPath, 'utf-8');
         list = JSON.parse(content);
       }
-    } catch {}
+    } catch (imgErr) {
+        console.error('Error al generar imagen PNG del comprobante:', imgErr);
+      }
     const pdfPublic = `/uploads/${pdfRel.replace(/\\/g, '/')}`;
     const xmlPublic = `/uploads/${xmlRel.replace(/\\/g, '/')}`;
     const imgPublic = `/uploads/${imgRel.replace(/\\/g, '/')}`;
     list.push({ ...comprobante, archivos: { pdf: pdfPublic, xml: xmlPublic, img: imgPublic } });
     try {
       fs.writeFileSync(jsonPath, JSON.stringify(list, null, 2));
-    } catch {}
+    } catch (imgErr) {
+        console.error('Error al generar imagen PNG del comprobante:', imgErr);
+      }
 
     return {
       status: 200,
