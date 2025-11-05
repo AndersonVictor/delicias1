@@ -253,31 +253,27 @@ export default function CheckoutPage() {
     setError(null);
     setDocMessage(null);
     try {
-      const token = process.env.NEXT_PUBLIC_APIS_NET_PE_TOKEN;
-      if (!token) {
-        setError("No se ha configurado el token de apis.net.pe");
-        return;
-      }
-
       if (tipoDocumento === "DNI") {
-        const resp = await axios.get(`https://api.apis.net.pe/v2/reniec/dni?numero=${encodeURIComponent(numeroDocumento)}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Referer: "https://apis.net.pe/consulta-dni-api",
-          },
-        });
-        setDniData(resp.data || null);
+        const resp = await axios.get(`/api/facturacion/consulta-dni?numero=${encodeURIComponent(numeroDocumento)}`,
+          {
+            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
+              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
+              : undefined,
+          }
+        );
+        setDniData(resp.data?.data || resp.data);
         setRucData(null);
         setDocMessage("Datos consultados en RENIEC correctamente.");
         toast.success("Datos consultados correctamente");
       } else {
-        const resp = await axios.get(`https://api.apis.net.pe/v2/sunat/ruc?numero=${encodeURIComponent(numeroDocumento)}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Referer: "https://apis.net.pe/consulta-ruc-api",
-          },
-        });
-        setRucData(resp.data || null);
+        const resp = await axios.get(`/api/facturacion/consulta-ruc?numero=${encodeURIComponent(numeroDocumento)}`,
+          {
+            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
+              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
+              : undefined,
+          }
+        );
+        setRucData(resp.data?.data || resp.data);
         setDniData(null);
         setDocMessage("Datos consultados en SUNAT correctamente.");
         toast.success("Datos consultados correctamente");
