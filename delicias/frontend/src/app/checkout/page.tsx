@@ -1,101 +1,169 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
-import { useAuth } from "@/context/AuthContext";
+import React, { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 import Link from "next/link";
-import { toast } from "react-hot-toast";
+import { currency } from "@/utils/currency";
+import { getImageSrc } from "@/utils/imageUtils";
 import { AnimatePresence, motion } from "framer-motion";
-import getImageSrc from "@/utils/image";
+import { toast } from "sonner";
+
+interface CartItem {
+  id: number;
+  nombre: string;
+  precio: string | number;
+  cantidad: number;
+  imagen?: string;
+}
+
+interface DniData {
+  first_name?: string;
+  first_last_name?: string;
+  second_last_name?: string;
+}
+
+interface RucData {
+  razon_social?: string;
+  nombre_o_razon_social?: string;
+  nombre_comercial?: string;
+  estado?: string;
+  condicion?: string;
+  direccion?: string;
+  domicilio_fiscal?: string;
+  domicilio?: string;
+}
 
 export default function CheckoutPage() {
+  const { cartItems, clearCart, getCartTotal } = useCart();
   const { isAuthenticated } = useAuth();
-  const { cartItems, getCartTotal, clearCart } = useCart();
-  type CartItem = { id: number; nombre: string; precio: number | string; cantidad: number; imagen?: string | null };
+
   const cartItemsTyped = cartItems as CartItem[];
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
+
   const [fechaEntrega, setFechaEntrega] = useState("");
   const [direccionEntrega, setDireccionEntrega] = useState("");
   const [telefonoContacto, setTelefonoContacto] = useState("");
   const [notas, setNotas] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [cardExp, setCardExp] = useState("");
   const [cardCvv, setCardCvv] = useState("");
-
   const [comprobanteTipo, setComprobanteTipo] = useState<"boleta" | "factura">("boleta");
   const [tipoDocumento, setTipoDocumento] = useState<"DNI" | "RUC">("DNI");
   const [numeroDocumento, setNumeroDocumento] = useState("");
-  // Datos de identidad consultados (RENIEC/SUNAT)
-  const [dniData, setDniData] = useState<any | null>(null);
-  const [rucData, setRucData] = useState<any | null>(null);
+  const [dniData, setDniData] = useState<DniData | null>(null);
+  const [rucData, setRucData] = useState<RucData | null>(null);
   const [docMessage, setDocMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const currency = useMemo(
-    () => (n: number) => new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(n),
-    []
-  );
+  // Función para formatear teléfono (solo 9 dígitos)
+  const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // Solo números
+    if (value.length <= 9) {
+      setTelefonoContacto(value);
+    }
+  };
 
-  useEffect(() => {
-    // Si no hay autenticación o el carrito está vacío, mostrar mensajes
-  }, []);
+  // Función para formatear número de tarjeta (16 dígitos con espacios cada 4)
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // Solo números
+    if (value.length <= 16) {
+      // Agregar espacio cada 4 dígitos
+      const formatted = value.match(/.{1,4}/g)?.join(" ") || value;
+      setCardNumber(formatted);
+    }
+  };
+
+  // Función para formatear expiración (MM/YY)
+  const handleCardExpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ""); // Solo números
+    if (value.length >= 2) {
+      value = value.slice(0, 2) + "/" + value.slice(2, 4);
+    }
+    if (value.length <= 5) {
+      setCardExp(value);
+    }
+  };
+
+  // Función para formatear CVV (solo 3 dígitos)
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // Solo números
+    if (value.length <= 3) {
+      setCardCvv(value);
+    }
+  };
 
   const validate = () => {
-    if (!fechaEntrega || !direccionEntrega || !telefonoContacto) {
-      setError("Completa fecha de entrega, dirección y teléfono");
+    if (!fechaEntrega.trim()) {
+      setError("Fecha de entrega es requerida");
       return false;
     }
-    if (!numeroDocumento) {
-      setError("Ingresa el número de documento para el comprobante");
+    
+    // Validar que la fecha no sea anterior a hoy
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(fechaEntrega);
+    if (selectedDate < today) {
+      setError("La fecha de entrega no puede ser anterior a hoy");
       return false;
     }
-    if (comprobanteTipo === "factura" && tipoDocumento !== "RUC") {
-      setError("Para emitir factura, el tipo de documento debe ser RUC");
+
+    if (!direccionEntrega.trim()) {
+      setError("Dirección de entrega es requerida");
       return false;
     }
-    if (tipoDocumento === "DNI" && !/^\d{8}$/.test(numeroDocumento)) {
-      setError("El DNI debe tener 8 dígitos");
+
+    // Validar teléfono (exactamente 9 dígitos)
+    if (!/^\d{9}$/.test(telefonoContacto)) {
+      setError("El teléfono debe tener exactamente 9 dígitos");
       return false;
     }
-    if (tipoDocumento === "RUC" && !/^\d{11}$/.test(numeroDocumento)) {
-      setError("El RUC debe tener 11 dígitos");
-      return false;
-    }
+
     if (paymentMethod === "card") {
-      if (!cardNumber || !cardName || !cardExp || !cardCvv) {
-        setError("Completa los datos de la tarjeta");
+      const cardNumberClean = cardNumber.replace(/\s/g, "");
+      if (!/^\d{16}$/.test(cardNumberClean)) {
+        setError("Número de tarjeta inválido (debe tener 16 dígitos)");
         return false;
       }
-      if (!/^\d{16}$/.test(cardNumber.replace(/\s+/g, ""))) {
-        setError("Número de tarjeta inválido (16 dígitos)");
+      if (!cardName.trim()) {
+        setError("Nombre en tarjeta es requerido");
         return false;
       }
       if (!/^\d{2}\/\d{2}$/.test(cardExp)) {
-        setError("Fecha de expiración inválida (MM/YY)");
+        setError("Fecha de expiración inválida (formato MM/YY)");
         return false;
       }
-      if (!/^\d{3,4}$/.test(cardCvv)) {
-        setError("CVV inválido");
+      if (!/^\d{3}$/.test(cardCvv)) {
+        setError("CVV inválido (debe tener 3 dígitos)");
         return false;
       }
     }
+
+    if (!numeroDocumento.trim()) {
+      setError("Número de documento es requerido");
+      return false;
+    }
+    if (tipoDocumento === "DNI" && !/^\d{8}$/.test(numeroDocumento)) {
+      setError("DNI inválido (debe tener 8 dígitos)");
+      return false;
+    }
+    if (tipoDocumento === "RUC" && !/^\d{11}$/.test(numeroDocumento)) {
+      setError("RUC inválido (debe tener 11 dígitos)");
+      return false;
+    }
+
     setError(null);
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isAuthenticated()) {
-      setError("Debes iniciar sesión para realizar el checkout");
-      toast.error("Debes iniciar sesión para realizar el checkout");
-      return;
-    }
-    if (cartItems.length === 0) {
-      setError("Tu carrito está vacío");
-      toast.error("Tu carrito está vacío");
+      setError("Debes iniciar sesión para completar tu compra");
+      toast.error("Debes iniciar sesión");
       return;
     }
     if (!validate()) {
@@ -115,7 +183,7 @@ export default function CheckoutPage() {
           metodo: paymentMethod,
           tarjeta:
             paymentMethod === "card"
-              ? { numero: cardNumber, nombre: cardName, exp: cardExp, cvv: cardCvv }
+              ? { numero: cardNumber.replace(/\s/g, ""), nombre: cardName, exp: cardExp, cvv: cardCvv }
               : undefined,
         },
       };
@@ -185,27 +253,31 @@ export default function CheckoutPage() {
     setError(null);
     setDocMessage(null);
     try {
+      const token = process.env.NEXT_PUBLIC_APIS_NET_PE_TOKEN;
+      if (!token) {
+        setError("No se ha configurado el token de apis.net.pe");
+        return;
+      }
+
       if (tipoDocumento === "DNI") {
-        const resp = await axios.get(`/api/facturacion/consulta-dni?numero=${encodeURIComponent(numeroDocumento)}`,
-          {
-            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
-              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
-              : undefined,
-          }
-        );
-        setDniData(resp.data?.data || resp.data);
+        const resp = await axios.get(`https://api.apis.net.pe/v2/reniec/dni?numero=${encodeURIComponent(numeroDocumento)}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Referer: "https://apis.net.pe/consulta-dni-api",
+          },
+        });
+        setDniData(resp.data || null);
         setRucData(null);
         setDocMessage("Datos consultados en RENIEC correctamente.");
         toast.success("Datos consultados correctamente");
       } else {
-        const resp = await axios.get(`/api/facturacion/consulta-ruc?numero=${encodeURIComponent(numeroDocumento)}`,
-          {
-            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
-              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
-              : undefined,
-          }
-        );
-        setRucData(resp.data?.data || resp.data);
+        const resp = await axios.get(`https://api.apis.net.pe/v2/sunat/ruc?numero=${encodeURIComponent(numeroDocumento)}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Referer: "https://apis.net.pe/consulta-ruc-api",
+          },
+        });
+        setRucData(resp.data || null);
         setDniData(null);
         setDocMessage("Datos consultados en SUNAT correctamente.");
         toast.success("Datos consultados correctamente");
@@ -217,6 +289,11 @@ export default function CheckoutPage() {
       setError(msg);
       toast.error(msg);
     }
+  };
+
+  // Obtener fecha mínima (hoy)
+  const getTodayDate = () => {
+    return new Date().toISOString().split('T')[0];
   };
 
   return (
@@ -283,9 +360,9 @@ export default function CheckoutPage() {
                 <div className="text-sm">Total</div>
                 <div className="font-semibold">{currency(getCartTotal())}</div>
               </div>
-+             <div className="px-3 pb-3 text-xs text-black/60">
-+               {comprobanteTipo === "boleta" ? "Boleta: Sin IGV" : "Factura: IGV no aplicado (temporal)"}
-+             </div>
+              <div className="px-3 pb-3 text-xs text-black/60">
+                {comprobanteTipo === "boleta" ? "Boleta: Sin IGV" : "Factura: IGV no aplicado (temporal)"}
+              </div>
             </div>
 
             {/* Formulario de checkout */}
@@ -297,6 +374,7 @@ export default function CheckoutPage() {
                     type="date"
                     value={fechaEntrega}
                     onChange={(e) => setFechaEntrega(e.target.value)}
+                    min={getTodayDate()}
                     className="mt-1 w-full border rounded px-3 py-2"
                   />
                 </div>
@@ -314,12 +392,14 @@ export default function CheckoutPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium">Teléfono de contacto</label>
+                  <label className="block text-sm font-medium">Teléfono de contacto (9 dígitos)</label>
                   <input
                     type="tel"
                     value={telefonoContacto}
-                    onChange={(e) => setTelefonoContacto(e.target.value)}
+                    onChange={handleTelefonoChange}
                     className="mt-1 w-full border rounded px-3 py-2"
+                    placeholder="987654321"
+                    maxLength={9}
                   />
                 </div>
                 <div>
@@ -351,13 +431,14 @@ export default function CheckoutPage() {
               {paymentMethod === "card" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium">Número de tarjeta</label>
+                    <label className="block text-sm font-medium">Número de tarjeta (16 dígitos)</label>
                     <input
                       type="text"
                       value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
+                      onChange={handleCardNumberChange}
                       className="mt-1 w-full border rounded px-3 py-2"
                       placeholder="1234 5678 9012 3456"
+                      maxLength={19}
                     />
                   </div>
                   <div>
@@ -374,19 +455,21 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       value={cardExp}
-                      onChange={(e) => setCardExp(e.target.value)}
+                      onChange={handleCardExpChange}
                       className="mt-1 w-full border rounded px-3 py-2"
                       placeholder="MM/YY"
+                      maxLength={5}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium">CVV</label>
+                    <label className="block text-sm font-medium">CVV (3 dígitos)</label>
                     <input
                       type="text"
                       value={cardCvv}
-                      onChange={(e) => setCardCvv(e.target.value)}
+                      onChange={handleCvvChange}
                       className="mt-1 w-full border rounded px-3 py-2"
                       placeholder="123"
+                      maxLength={3}
                     />
                   </div>
                 </div>
@@ -402,7 +485,7 @@ export default function CheckoutPage() {
                       <option value="boleta">Boleta</option>
                       <option value="factura">Factura</option>
                     </select>
-+                   <p className="mt-1 text-xs text-black/60">Para boleta no se aplica IGV.</p>
+                    <p className="mt-1 text-xs text-black/60">Para boleta no se aplica IGV.</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium">Documento</label>
