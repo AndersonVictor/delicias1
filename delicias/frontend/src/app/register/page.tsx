@@ -21,11 +21,12 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     const res = await register({ nombre, apellido, email, password, telefono, direccion });
-    setLoading(false);
     if (res.success) {
-      router.push("/");
+      // Usar window.location.href para forzar recarga y asegurar que la cookie se lea
+      window.location.href = "/";
     } else {
       setError(res.error || "Error al registrarse");
+      setLoading(false);
     }
   };
 
@@ -45,6 +46,7 @@ export default function RegisterPage() {
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             required
+            autoComplete="given-name"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -55,6 +57,7 @@ export default function RegisterPage() {
             value={apellido}
             onChange={(e) => setApellido(e.target.value)}
             required
+            autoComplete="family-name"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -65,6 +68,7 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -75,6 +79,7 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="new-password"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -84,6 +89,7 @@ export default function RegisterPage() {
             type="tel"
             value={telefono}
             onChange={(e) => setTelefono(e.target.value)}
+            autoComplete="tel"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -93,6 +99,7 @@ export default function RegisterPage() {
             type="text"
             value={direccion}
             onChange={(e) => setDireccion(e.target.value)}
+            autoComplete="street-address"
             className="w-full border rounded px-3 py-2"
           />
         </div>
@@ -101,7 +108,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gray-800 text-white rounded px-4 py-2 hover:bg-gray-900"
+            className="w-full bg-gray-800 text-white rounded px-4 py-2 hover:bg-gray-900 disabled:opacity-50"
           >
             {loading ? "Registrando..." : "Registrarse"}
           </button>
