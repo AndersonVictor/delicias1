@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', newToken);
         // Set cookie para middleware (no HttpOnly). Recomendado migrar a cookie HttpOnly desde backend.
         const maxAgeDays = 7;
-        document.cookie = `token=${newToken}; path=/; max-age=${60 * 60 * 24 * maxAgeDays}`;
+        document.cookie = `token=${newToken}; path=/; max-age=${60 * 60 * 24 * maxAgeDays}; SameSite=Lax; Secure`;
       }
       
       return { success: true, user: normalizedUser };
@@ -129,7 +129,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', newToken);
         // Set cookie para middleware (igual que en login)
         const maxAgeDays = 7;
-        document.cookie = `token=${newToken}; path=/; max-age=${60 * 60 * 24 * maxAgeDays}`;
+        document.cookie = `token=${newToken}; path=/; max-age=${60 * 60 * 24 * maxAgeDays}; SameSite=Lax; Secure`;
       }
       
       return { success: true, user: newUser };
@@ -144,12 +144,14 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: message, details };
     }
   };
+
+  const logout = () => {
     setToken(null);
     setUser(null);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       // Eliminar cookie del token
-      document.cookie = 'token=; path=/; max-age=0';
+      document.cookie = 'token=; path=/; max-age=0; SameSite=Lax; Secure';
     }
     delete axios.defaults.headers.common['Authorization'];
   };
