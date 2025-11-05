@@ -39,18 +39,22 @@ export const AuthProvider = ({ children }) => {
         const status = error?.response?.status;
         const url = error?.config?.url || '';
 
-        if (status === 401 || status === 403) {
-          // Cerrar sesión y redirigir según el contexto
-          logout();
-          if (typeof window !== 'undefined') {
-            const isAdminRequest =
-              url.includes('/usuarios/admin') ||
-              url.includes('/categorias/admin') ||
-              url.includes('/productos/admin') ||
-              url.includes('/admin/') ||
-              window.location.pathname.startsWith('/admin');
+        // Only logout if we get 401/403 AND we have a token (to avoid logout loops)
+        if ((status === 401 || status === 403) && token) {
+          // Avoid logging out on the verify endpoint itself to prevent loops
+          if (!url.includes('/auth/verify')) {
+            // Cerrar sesión y redirigir según el contexto
+            logout();
+            if (typeof window !== 'undefined') {
+              const isAdminRequest =
+                url.includes('/usuarios/admin') ||
+                url.includes('/categorias/admin') ||
+                url.includes('/productos/admin') ||
+                url.includes('/admin/') ||
+                window.location.pathname.startsWith('/admin');
 
-            window.location.href = isAdminRequest ? '/admin/login' : '/login';
+              window.location.href = isAdminRequest ? '/admin/login' : '/login';
+            }
           }
         }
         return Promise.reject(error);
@@ -65,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   // Verificar token al cargar la aplicación
   useEffect(() => {
     const verifyToken = async () => {
-      if (token) {
+      if (token && !user) {
         try {
           const response = await axios.get('/api/auth/verify');
           if (response.data?.tipo === 'admin' && response.data.admin) {
@@ -80,6 +84,8 @@ export const AuthProvider = ({ children }) => {
           console.error('Token inválido:', error);
           logout();
         }
+      } else if (!token) {
+        setUser(null);
       }
       setLoading(false);
     };
