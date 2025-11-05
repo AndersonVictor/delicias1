@@ -644,17 +644,17 @@ export default function CheckoutPage() {
                     {docMessage && <div className="text-green-700">{docMessage}</div>}
                     {dniData && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div><span className="text-gray-600">Nombres:</span> {dniData.first_name || "-"}</div>
-                        <div><span className="text-gray-600">Apellido paterno:</span> {dniData.first_last_name || "-"}</div>
-                        <div><span className="text-gray-600">Apellido materno:</span> {dniData.second_last_name || "-"}</div>
+                        <div><span className="text-gray-600">Nombres:</span> {(dniData.first_name as string) || "-"}</div>
+                        <div><span className="text-gray-600">Apellido paterno:</span> {(dniData.first_last_name as string) || "-"}</div>
+                        <div><span className="text-gray-600">Apellido materno:</span> {(dniData.second_last_name as string) || "-"}</div>
                       </div>
                     )}
                     {rucData && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div><span className="text-gray-600">Razón social:</span> {rucData.razon_social || rucData.nombre_o_razon_social || "-"}</div>
-                        <div><span className="text-gray-600">Nombre comercial:</span> {rucData.nombre_comercial || "-"}</div>
-                        <div><span className="text-gray-600">Estado/Condición:</span> {(rucData.estado || rucData.condicion) || "-"}</div>
-                        <div className="md:col-span-3"><span className="text-gray-600">Domicilio fiscal:</span> {rucData.direccion || rucData.domicilio_fiscal || rucData.domicilio || "-"}</div>
+                        <div><span className="text-gray-600">Razón social:</span> {(rucData.razon_social as string) || (rucData.nombre_o_razon_social as string) || "-"}</div>
+                        <div><span className="text-gray-600">Nombre comercial:</span> {(rucData.nombre_comercial as string) || "-"}</div>
+                        <div><span className="text-gray-600">Estado/Condición:</span> {((rucData.estado as string) || (rucData.condicion as string)) || "-"}</div>
+                        <div className="md:col-span-3"><span className="text-gray-600">Domicilio fiscal:</span> {(rucData.direccion as string) || (rucData.domicilio_fiscal as string) || (rucData.domicilio as string) || "-"}</div>
                       </div>
                     )}
                   </div>
