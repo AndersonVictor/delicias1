@@ -350,3 +350,52 @@ export class FacturacionService {
     }
   }
 }
+  // ADMIN: eliminar comprobante por ID
+  async eliminarComprobante(id: string) {
+    const folder = this.ensureFolder();
+    const jsonPath = path.join(folder, 'comprobantes.json');
+    
+    try {
+      // Leer comprobantes existentes
+      if (!fs.existsSync(jsonPath)) {
+        return { status: 404, body: { error: 'No encontrado', message: 'No se encontró el comprobante' } };
+      }
+      
+      const content = fs.readFileSync(jsonPath, 'utf-8');
+      let list: any[] = JSON.parse(content);
+      
+      // Buscar el comprobante
+      const comprobante = list.find((c) => c.id === id);
+      if (!comprobante) {
+        return { status: 404, body: { error: 'No encontrado', message: 'No se encontró el comprobante' } };
+      }
+      
+      // Eliminar archivos físicos (PDF, XML, IMG)
+      try {
+        if (comprobante.archivos?.pdf) {
+          const pdfPath = path.join(process.cwd(), comprobante.archivos.pdf.replace(/^\//, ''));
+          if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+        }
+        if (comprobante.archivos?.xml) {
+          const xmlPath = path.join(process.cwd(), comprobante.archivos.xml.replace(/^\//, ''));
+          if (fs.existsSync(xmlPath)) fs.unlinkSync(xmlPath);
+        }
+        if (comprobante.archivos?.img) {
+          const imgPath = path.join(process.cwd(), comprobante.archivos.img.replace(/^\//, ''));
+          if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+        }
+      } catch (fileErr) {
+        console.error('Error al eliminar archivos físicos:', fileErr);
+      }
+      
+      // Eliminar del array y guardar
+      list = list.filter((c) => c.id !== id);
+      fs.writeFileSync(jsonPath, JSON.stringify(list, null, 2), 'utf-8');
+      
+      return { status: 200, body: { message: 'Comprobante eliminado correctamente', id } };
+    } catch (e) {
+      console.error('Error al eliminar comprobante:', e);
+      return { status: 500, body: { error: 'Error interno', message: 'No se pudo eliminar el comprobante' } };
+    }
+  }
+}

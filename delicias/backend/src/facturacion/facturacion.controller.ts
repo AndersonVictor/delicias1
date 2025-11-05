@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards, Req, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Delete, Param, UseGuards, Req, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { UsuarioGuard } from '../auth/guards/usuario.guard';
@@ -41,6 +41,15 @@ export class FacturacionController {
     const p = pagina ? parseInt(pagina, 10) : undefined;
     const l = limite ? parseInt(limite, 10) : undefined;
     const result = await this.service.adminComprobantes({ pagina: p, limite: l, tipo, estado });
+    return { statusCode: result.status, ...result.body };
+  }
+
+  // ADMIN: eliminar comprobante
+  @Delete('admin/comprobantes/:id')
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
+  @ApiBearerAuth()
+  async eliminarComprobante(@Param('id') id: string) {
+    const result = await this.service.eliminarComprobante(id);
     return { statusCode: result.status, ...result.body };
   }
 
