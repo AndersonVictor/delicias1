@@ -8,6 +8,9 @@ import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import getImageSrc from "@/utils/image";
 
+// Validation regex patterns
+const CVV_PATTERN = /^\d{3}$/;
+
 export default function CheckoutPage() {
   const { isAuthenticated } = useAuth();
   const { cartItems, getCartTotal, clearCart } = useCart();
@@ -36,6 +39,11 @@ export default function CheckoutPage() {
 
   // Field validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Helper function to safely extract string values from API response
+  const safeString = (value: unknown): string => {
+    return value != null ? String(value) : '-';
+  };
 
   const currency = useMemo(
     () => (n: number) => new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(n),
@@ -245,7 +253,7 @@ export default function CheckoutPage() {
         return false;
       }
 
-      if (!/^\d{3}$/.test(cardCvv)) {
+      if (!CVV_PATTERN.test(cardCvv)) {
         setError("El CVV debe tener 3 dígitos");
         return false;
       }
@@ -644,17 +652,17 @@ export default function CheckoutPage() {
                     {docMessage && <div className="text-green-700">{docMessage}</div>}
                     {dniData && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div><span className="text-gray-600">Nombres:</span> {(dniData.first_name as string) || "-"}</div>
-                        <div><span className="text-gray-600">Apellido paterno:</span> {(dniData.first_last_name as string) || "-"}</div>
-                        <div><span className="text-gray-600">Apellido materno:</span> {(dniData.second_last_name as string) || "-"}</div>
+                        <div><span className="text-gray-600">Nombres:</span> {safeString(dniData.first_name)}</div>
+                        <div><span className="text-gray-600">Apellido paterno:</span> {safeString(dniData.first_last_name)}</div>
+                        <div><span className="text-gray-600">Apellido materno:</span> {safeString(dniData.second_last_name)}</div>
                       </div>
                     )}
                     {rucData && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div><span className="text-gray-600">Razón social:</span> {(rucData.razon_social as string) || (rucData.nombre_o_razon_social as string) || "-"}</div>
-                        <div><span className="text-gray-600">Nombre comercial:</span> {(rucData.nombre_comercial as string) || "-"}</div>
-                        <div><span className="text-gray-600">Estado/Condición:</span> {((rucData.estado as string) || (rucData.condicion as string)) || "-"}</div>
-                        <div className="md:col-span-3"><span className="text-gray-600">Domicilio fiscal:</span> {(rucData.direccion as string) || (rucData.domicilio_fiscal as string) || (rucData.domicilio as string) || "-"}</div>
+                        <div><span className="text-gray-600">Razón social:</span> {safeString(rucData.razon_social || rucData.nombre_o_razon_social)}</div>
+                        <div><span className="text-gray-600">Nombre comercial:</span> {safeString(rucData.nombre_comercial)}</div>
+                        <div><span className="text-gray-600">Estado/Condición:</span> {safeString(rucData.estado || rucData.condicion)}</div>
+                        <div className="md:col-span-3"><span className="text-gray-600">Domicilio fiscal:</span> {safeString(rucData.direccion || rucData.domicilio_fiscal || rucData.domicilio)}</div>
                       </div>
                     )}
                   </div>

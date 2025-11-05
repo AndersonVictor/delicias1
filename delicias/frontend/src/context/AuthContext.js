@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   // Verificar token al cargar la aplicación
   useEffect(() => {
     const verifyToken = async () => {
-      if (token && !user) {
+      if (token && !user?.id) {
         try {
           const response = await axios.get('/api/auth/verify');
           if (response.data?.tipo === 'admin' && response.data.admin) {
