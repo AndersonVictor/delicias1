@@ -8,6 +8,9 @@ import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import getImageSrc from "@/utils/image";
 
+// Validation regex patterns
+const CVV_PATTERN = /^\d{3}$/;
+
 export default function CheckoutPage() {
   const { isAuthenticated } = useAuth();
   const { cartItems, getCartTotal, clearCart } = useCart();
@@ -30,9 +33,17 @@ export default function CheckoutPage() {
   const [tipoDocumento, setTipoDocumento] = useState<"DNI" | "RUC">("DNI");
   const [numeroDocumento, setNumeroDocumento] = useState("");
   // Datos de identidad consultados (RENIEC/SUNAT)
-  const [dniData, setDniData] = useState<any | null>(null);
-  const [rucData, setRucData] = useState<any | null>(null);
+  const [dniData, setDniData] = useState<Record<string, unknown> | null>(null);
+  const [rucData, setRucData] = useState<Record<string, unknown> | null>(null);
   const [docMessage, setDocMessage] = useState<string | null>(null);
+
+  // Field validation errors
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Helper function to safely extract string values from API response
+  const safeString = (value: unknown): string => {
+    return value != null ? String(value) : '-';
+  };
 
   const currency = useMemo(
     () => (n: number) => new Intl.NumberFormat("es-PE", { style: "currency", currency: "PEN" }).format(n),
@@ -43,11 +54,160 @@ export default function CheckoutPage() {
     // Si no hay autenticación o el carrito está vacío, mostrar mensajes
   }, []);
 
+  // Get minimum date (today) for delivery date
+  const getMinDeliveryDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Validate and format phone (9 digits)
+  const handlePhoneChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const limited = digits.slice(0, 9);
+    setTelefonoContacto(limited);
+    
+    if (limited.length > 0 && limited.length < 9) {
+      setFieldErrors(prev => ({ ...prev, telefono: 'El teléfono debe tener exactamente 9 dígitos' }));
+    } else if (limited.length === 9) {
+      setFieldErrors(prev => {
+        const { telefono, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setFieldErrors(prev => {
+        const { telefono, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
+  // Validate and format card number (16 digits with spaces)
+  const handleCardNumberChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const limited = digits.slice(0, 16);
+    const formatted = limited.match(/.{1,4}/g)?.join(' ') || limited;
+    setCardNumber(formatted);
+
+    if (limited.length > 0 && limited.length < 16) {
+      setFieldErrors(prev => ({ ...prev, cardNumber: 'La tarjeta debe tener 16 dígitos' }));
+    } else if (limited.length === 16) {
+      setFieldErrors(prev => {
+        const { cardNumber, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setFieldErrors(prev => {
+        const { cardNumber, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
+  // Validate and format card expiration (MM/YY)
+  const handleCardExpChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    let formatted = digits;
+    
+    if (digits.length >= 2) {
+      formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4);
+    }
+    
+    setCardExp(formatted);
+
+    if (formatted.length === 5) {
+      const [month, year] = formatted.split('/');
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10);
+      const currentYear = new Date().getFullYear() % 100;
+      
+      if (monthNum < 1 || monthNum > 12) {
+        setFieldErrors(prev => ({ ...prev, cardExp: 'Mes debe estar entre 01-12' }));
+      } else if (yearNum < currentYear) {
+        setFieldErrors(prev => ({ ...prev, cardExp: 'El año no puede ser anterior al actual' }));
+      } else {
+        setFieldErrors(prev => {
+          const { cardExp, ...rest } = prev;
+          return rest;
+        });
+      }
+    } else if (formatted.length > 0) {
+      setFieldErrors(prev => ({ ...prev, cardExp: 'Formato de expiración inválido (MM/YY)' }));
+    } else {
+      setFieldErrors(prev => {
+        const { cardExp, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
+  // Validate and format CVV (3 digits)
+  const handleCvvChange = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const limited = digits.slice(0, 3);
+    setCardCvv(limited);
+
+    if (limited.length > 0 && limited.length < 3) {
+      setFieldErrors(prev => ({ ...prev, cvv: 'El CVV debe tener 3 dígitos' }));
+    } else if (limited.length === 3) {
+      setFieldErrors(prev => {
+        const { cvv, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setFieldErrors(prev => {
+        const { cvv, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
+  // Validate delivery date
+  const handleFechaEntregaChange = (value: string) => {
+    setFechaEntrega(value);
+    const selectedDate = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      setFieldErrors(prev => ({ ...prev, fechaEntrega: 'La fecha de entrega no puede ser anterior a hoy' }));
+    } else {
+      setFieldErrors(prev => {
+        const { fechaEntrega, ...rest } = prev;
+        return rest;
+      });
+    }
+  };
+
+  // Check if form has errors
+  const hasErrors = Object.keys(fieldErrors).length > 0;
+
   const validate = () => {
+    // Check if there are any field errors
+    if (hasErrors) {
+      setError("Por favor corrige los errores en el formulario");
+      return false;
+    }
+
     if (!fechaEntrega || !direccionEntrega || !telefonoContacto) {
       setError("Completa fecha de entrega, dirección y teléfono");
       return false;
     }
+
+    // Validate delivery date is not in the past
+    const selectedDate = new Date(fechaEntrega);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      setError("La fecha de entrega no puede ser anterior a hoy");
+      return false;
+    }
+
+    // Validate phone is exactly 9 digits
+    if (!/^\d{9}$/.test(telefonoContacto)) {
+      setError("El teléfono debe tener exactamente 9 dígitos");
+      return false;
+    }
+
     if (!numeroDocumento) {
       setError("Ingresa el número de documento para el comprobante");
       return false;
@@ -77,8 +237,24 @@ export default function CheckoutPage() {
         setError("Fecha de expiración inválida (MM/YY)");
         return false;
       }
-      if (!/^\d{3,4}$/.test(cardCvv)) {
-        setError("CVV inválido");
+      
+      // Validate expiration date
+      const [month, year] = cardExp.split('/');
+      const monthNum = parseInt(month, 10);
+      const yearNum = parseInt(year, 10);
+      const currentYear = new Date().getFullYear() % 100;
+      
+      if (monthNum < 1 || monthNum > 12) {
+        setError("Mes debe estar entre 01-12");
+        return false;
+      }
+      if (yearNum < currentYear) {
+        setError("El año no puede ser anterior al actual");
+        return false;
+      }
+
+      if (!CVV_PATTERN.test(cardCvv)) {
+        setError("El CVV debe tener 3 dígitos");
         return false;
       }
     }
@@ -134,11 +310,6 @@ export default function CheckoutPage() {
             comprobante_tipo: comprobanteTipo,
             tipo_documento: tipoDocumento,
             numero_documento: numeroDocumento,
-          },
-          {
-            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
-              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
-              : undefined,
           }
         );
         const baseURL = axios.defaults.baseURL || "";
@@ -186,25 +357,13 @@ export default function CheckoutPage() {
     setDocMessage(null);
     try {
       if (tipoDocumento === "DNI") {
-        const resp = await axios.get(`/api/facturacion/consulta-dni?numero=${encodeURIComponent(numeroDocumento)}`,
-          {
-            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
-              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
-              : undefined,
-          }
-        );
+        const resp = await axios.get(`/api/facturacion/consulta-dni?numero=${encodeURIComponent(numeroDocumento)}`);
         setDniData(resp.data?.data || resp.data);
         setRucData(null);
         setDocMessage("Datos consultados en RENIEC correctamente.");
         toast.success("Datos consultados correctamente");
       } else {
-        const resp = await axios.get(`/api/facturacion/consulta-ruc?numero=${encodeURIComponent(numeroDocumento)}`,
-          {
-            headers: process.env.NEXT_PUBLIC_DECOLECTA_TOKEN
-              ? { "X-Decolecta-Token": process.env.NEXT_PUBLIC_DECOLECTA_TOKEN }
-              : undefined,
-          }
-        );
+        const resp = await axios.get(`/api/facturacion/consulta-ruc?numero=${encodeURIComponent(numeroDocumento)}`);
         setRucData(resp.data?.data || resp.data);
         setDniData(null);
         setDocMessage("Datos consultados en SUNAT correctamente.");
@@ -296,9 +455,19 @@ export default function CheckoutPage() {
                   <input
                     type="date"
                     value={fechaEntrega}
-                    onChange={(e) => setFechaEntrega(e.target.value)}
-                    className="mt-1 w-full border rounded px-3 py-2"
+                    onChange={(e) => handleFechaEntregaChange(e.target.value)}
+                    min={getMinDeliveryDate()}
+                    className={`mt-1 w-full border rounded px-3 py-2 ${
+                      fieldErrors.fechaEntrega 
+                        ? 'border-red-500' 
+                        : fechaEntrega && !fieldErrors.fechaEntrega 
+                        ? 'border-green-500' 
+                        : ''
+                    }`}
                   />
+                  {fieldErrors.fechaEntrega && (
+                    <p className="text-red-600 text-xs mt-1">{fieldErrors.fechaEntrega}</p>
+                  )}
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium">Dirección de entrega</label>
@@ -306,7 +475,9 @@ export default function CheckoutPage() {
                     type="text"
                     value={direccionEntrega}
                     onChange={(e) => setDireccionEntrega(e.target.value)}
-                    className="mt-1 w-full border rounded px-3 py-2"
+                    className={`mt-1 w-full border rounded px-3 py-2 ${
+                      direccionEntrega ? 'border-green-500' : ''
+                    }`}
                     placeholder="Av. Siempre Viva 742"
                   />
                 </div>
@@ -318,9 +489,20 @@ export default function CheckoutPage() {
                   <input
                     type="tel"
                     value={telefonoContacto}
-                    onChange={(e) => setTelefonoContacto(e.target.value)}
-                    className="mt-1 w-full border rounded px-3 py-2"
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    className={`mt-1 w-full border rounded px-3 py-2 ${
+                      fieldErrors.telefono 
+                        ? 'border-red-500' 
+                        : telefonoContacto.length === 9 
+                        ? 'border-green-500' 
+                        : ''
+                    }`}
+                    placeholder="999999999"
+                    maxLength={9}
                   />
+                  {fieldErrors.telefono && (
+                    <p className="text-red-600 text-xs mt-1">{fieldErrors.telefono}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium">Notas</label>
@@ -355,10 +537,20 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      className="mt-1 w-full border rounded px-3 py-2"
+                      onChange={(e) => handleCardNumberChange(e.target.value)}
+                      className={`mt-1 w-full border rounded px-3 py-2 ${
+                        fieldErrors.cardNumber 
+                          ? 'border-red-500' 
+                          : cardNumber.replace(/\s/g, '').length === 16 
+                          ? 'border-green-500' 
+                          : ''
+                      }`}
                       placeholder="1234 5678 9012 3456"
+                      maxLength={19}
                     />
+                    {fieldErrors.cardNumber && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.cardNumber}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium">Nombre en la tarjeta</label>
@@ -366,7 +558,10 @@ export default function CheckoutPage() {
                       type="text"
                       value={cardName}
                       onChange={(e) => setCardName(e.target.value)}
-                      className="mt-1 w-full border rounded px-3 py-2"
+                      className={`mt-1 w-full border rounded px-3 py-2 ${
+                        cardName ? 'border-green-500' : ''
+                      }`}
+                      placeholder="JUAN PEREZ"
                     />
                   </div>
                   <div>
@@ -374,20 +569,40 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       value={cardExp}
-                      onChange={(e) => setCardExp(e.target.value)}
-                      className="mt-1 w-full border rounded px-3 py-2"
+                      onChange={(e) => handleCardExpChange(e.target.value)}
+                      className={`mt-1 w-full border rounded px-3 py-2 ${
+                        fieldErrors.cardExp 
+                          ? 'border-red-500' 
+                          : cardExp.length === 5 && !fieldErrors.cardExp 
+                          ? 'border-green-500' 
+                          : ''
+                      }`}
                       placeholder="MM/YY"
+                      maxLength={5}
                     />
+                    {fieldErrors.cardExp && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.cardExp}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium">CVV</label>
                     <input
                       type="text"
                       value={cardCvv}
-                      onChange={(e) => setCardCvv(e.target.value)}
-                      className="mt-1 w-full border rounded px-3 py-2"
+                      onChange={(e) => handleCvvChange(e.target.value)}
+                      className={`mt-1 w-full border rounded px-3 py-2 ${
+                        fieldErrors.cvv 
+                          ? 'border-red-500' 
+                          : cardCvv.length === 3 
+                          ? 'border-green-500' 
+                          : ''
+                      }`}
                       placeholder="123"
+                      maxLength={3}
                     />
+                    {fieldErrors.cvv && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.cvv}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -437,17 +652,17 @@ export default function CheckoutPage() {
                     {docMessage && <div className="text-green-700">{docMessage}</div>}
                     {dniData && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div><span className="text-gray-600">Nombres:</span> {dniData.first_name || "-"}</div>
-                        <div><span className="text-gray-600">Apellido paterno:</span> {dniData.first_last_name || "-"}</div>
-                        <div><span className="text-gray-600">Apellido materno:</span> {dniData.second_last_name || "-"}</div>
+                        <div><span className="text-gray-600">Nombres:</span> {safeString(dniData.first_name)}</div>
+                        <div><span className="text-gray-600">Apellido paterno:</span> {safeString(dniData.first_last_name)}</div>
+                        <div><span className="text-gray-600">Apellido materno:</span> {safeString(dniData.second_last_name)}</div>
                       </div>
                     )}
                     {rucData && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div><span className="text-gray-600">Razón social:</span> {rucData.razon_social || rucData.nombre_o_razon_social || "-"}</div>
-                        <div><span className="text-gray-600">Nombre comercial:</span> {rucData.nombre_comercial || "-"}</div>
-                        <div><span className="text-gray-600">Estado/Condición:</span> {(rucData.estado || rucData.condicion) || "-"}</div>
-                        <div className="md:col-span-3"><span className="text-gray-600">Domicilio fiscal:</span> {rucData.direccion || rucData.domicilio_fiscal || rucData.domicilio || "-"}</div>
+                        <div><span className="text-gray-600">Razón social:</span> {safeString(rucData.razon_social || rucData.nombre_o_razon_social)}</div>
+                        <div><span className="text-gray-600">Nombre comercial:</span> {safeString(rucData.nombre_comercial)}</div>
+                        <div><span className="text-gray-600">Estado/Condición:</span> {safeString(rucData.estado || rucData.condicion)}</div>
+                        <div className="md:col-span-3"><span className="text-gray-600">Domicilio fiscal:</span> {safeString(rucData.direccion || rucData.domicilio_fiscal || rucData.domicilio)}</div>
                       </div>
                     )}
                   </div>
@@ -460,9 +675,10 @@ export default function CheckoutPage() {
               <div className="flex justify-end">
                 <motion.button
                   type="submit"
-                  disabled={loading || !isAuthenticated()}
-                  className="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900 disabled:opacity-50"
+                  disabled={loading || !isAuthenticated() || hasErrors}
+                  className="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                   whileTap={{ scale: 0.98 }}
+                  title={hasErrors ? "Corrige los errores antes de proceder" : ""}
                 >
                   {loading ? "Procesando..." : "Confirmar pedido"}
                 </motion.button>

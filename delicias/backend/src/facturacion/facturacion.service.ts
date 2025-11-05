@@ -10,7 +10,7 @@ import sharp from 'sharp';
 export class FacturacionService {
   constructor(private prisma: PrismaService) {}
 
-  private readonly decolectaBaseUrl = process.env.DECOLECTA_BASE_URL || 'https://api.decolecta.com/v1';
+  private readonly apisNetPeToken = process.env.APIS_NET_PE_TOKEN;
 
   private ensureFolder() {
     const folder = path.join(process.cwd(), 'uploads', 'comprobantes');
@@ -27,15 +27,16 @@ export class FacturacionService {
   }
 
   private async fetchReniecDni(dni: string, token?: string): Promise<any | null> {
-    if (!token) return null;
-    // Según documentación, el parámetro es "numero"
-    const url = `${this.decolectaBaseUrl}/reniec/dni?numero=${encodeURIComponent(dni)}`;
+    const apiToken = token || this.apisNetPeToken;
+    if (!apiToken) return null;
+    const url = `https://api.apis.net.pe/v2/reniec/dni?numero=${encodeURIComponent(dni)}`;
     try {
       const resp = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Referer': 'https://apis.net.pe/consulta-dni-api',
+          'Authorization': `Bearer ${apiToken}`,
         },
       });
       if (!resp.ok) return null;
@@ -47,15 +48,16 @@ export class FacturacionService {
   }
 
   private async fetchSunatRuc(ruc: string, token?: string): Promise<any | null> {
-    if (!token) return null;
-    // Según documentación, el parámetro es "numero"
-    const url = `${this.decolectaBaseUrl}/sunat/ruc/full?numero=${encodeURIComponent(ruc)}`;
+    const apiToken = token || this.apisNetPeToken;
+    if (!apiToken) return null;
+    const url = `https://api.apis.net.pe/v2/sunat/ruc?numero=${encodeURIComponent(ruc)}`;
     try {
       const resp = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Referer': 'https://apis.net.pe/consulta-ruc-sunat',
+          'Authorization': `Bearer ${apiToken}`,
         },
       });
       if (!resp.ok) return null;
