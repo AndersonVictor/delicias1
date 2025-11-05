@@ -15,8 +15,8 @@ export class FacturacionController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   @ApiBearerAuth()
   async emitir(@Body() body: EmitirDto, @Req() req: any) {
-    const decolectaToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.DECOLECTA_TOKEN || undefined;
-    const result = await this.service.emitir(req.user.id, body, decolectaToken);
+    const apiToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.APIS_NET_PE_TOKEN || undefined;
+    const result = await this.service.emitir(req.user.id, body, apiToken);
     return { statusCode: result.status, ...result.body };
   }
 
@@ -49,8 +49,8 @@ export class FacturacionController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   @ApiBearerAuth()
   async consultaDni(@Query('numero') numero: string, @Req() req: any) {
-    const decolectaToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.DECOLECTA_TOKEN || undefined;
-    const result = await this.service.consultaReniecDni(numero, decolectaToken);
+    const apiToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.APIS_NET_PE_TOKEN || undefined;
+    const result = await this.service.consultaReniecDni(numero, apiToken);
     return { statusCode: result.status, ...result.body };
   }
 
@@ -58,8 +58,8 @@ export class FacturacionController {
   @UseGuards(AuthGuard('jwt'), UsuarioGuard)
   @ApiBearerAuth()
   async consultaRuc(@Query('numero') numero: string, @Req() req: any) {
-    const decolectaToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.DECOLECTA_TOKEN || undefined;
-    const result = await this.service.consultaSunatRuc(numero, decolectaToken);
+    const apiToken = (req.headers['x-decolecta-token'] as string | undefined) || process.env.APIS_NET_PE_TOKEN || undefined;
+    const result = await this.service.consultaSunatRuc(numero, apiToken);
     return { statusCode: result.status, ...result.body };
   }
 }
